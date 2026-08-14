@@ -1,0 +1,63 @@
+# SimpleDB - GitHub Pages Configuration
+# Learn more: https://docs.github.com/en/pages
+
+# Site Settings
+title: SimpleDB
+description: Lightweight File Archive - Simple file hosting with GitHub Pages
+baseurl: "/simpledb"      # Repository name
+url: "https://dryfish09.github.io"
+
+# Build Settings
+markdown: kramdown
+highlighter: rouge
+permalink: /:categories/:title/
+
+# Theme Settings (using minimal theme as base)
+theme: jekyll-theme-minimal
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# GitHub Pages specific
+github:
+  repository_url: https://github.com/dryfish09/SimpleDB
+
+# File Archive Settings
+files_directory: /files/
+
+# Custom Headers for CORS (for API access)
+# Note: This is informational - actual CORS is handled by GitHub
+headers:
+  - "Access-Control-Allow-Origin: *"
+
+# Exclude from build
+exclude:
+  - .gitignore
+  - .github/
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
+  - node_modules/
+  - README.md
+
+# Include files in build
+include:
+  - files/
+
+collections:
+  files:
+    output: false
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+  - scope:
+      path: "files"
+    values:
+      sitemap: true
