@@ -525,6 +525,9 @@
     </footer>
 
     <script>
+        // ⚠️ GITHUB TOKEN HARDCODED - USE WITH CAUTION
+        const GITHUB_TOKEN = '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';
+        
         const USERNAME = 'dryfish09';
         const REPO = 'SimpleDB';
         const FILES_PATH = 'files';
@@ -615,12 +618,27 @@
             return fileType === filterType;
         }
 
+        // Get headers with authentication
+        function getHeaders() {
+            return {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Accept': 'application/vnd.github.v3+json'
+            };
+        }
+
+        // Fetch with authentication
+        async function fetchWithAuth(url) {
+            const response = await fetch(url, {
+                headers: getHeaders()
+            });
+            return response;
+        }
+
         // Cooldown management
         function startCooldown() {
             cooldownEndTime = Date.now() + (REFRESH_COOLDOWN * 1000);
             lastRefreshTime = Date.now();
             
-            // Save cooldown state to sessionStorage to prevent reload exploits
             try {
                 sessionStorage.setItem('simpledb_cooldown', cooldownEndTime.toString());
             } catch (e) {
@@ -643,7 +661,6 @@
                 refreshIcon.textContent = '⏳';
                 refreshIcon.className = '';
                 
-                // Update every second
                 if (cooldownTimeout) {
                     clearTimeout(cooldownTimeout);
                 }
@@ -651,7 +668,6 @@
                     updateCooldownUI();
                 }, 1000);
             } else {
-                // Cooldown finished
                 refreshBtn.disabled = false;
                 cooldownTimer.style.display = 'none';
                 refreshText.textContent = 'Refresh';
@@ -660,7 +676,6 @@
                 cooldownEndTime = 0;
                 cooldownTimeout = null;
                 
-                // Clear session storage
                 try {
                     sessionStorage.removeItem('simpledb_cooldown');
                 } catch (e) {
@@ -669,7 +684,6 @@
             }
         }
 
-        // Check for existing cooldown on page load/reload
         function checkExistingCooldown() {
             try {
                 const savedCooldown = sessionStorage.getItem('simpledb_cooldown');
@@ -913,7 +927,7 @@
             }
         }
 
-        // Fetch files from GitHub
+        // Fetch files from GitHub with authentication
         async function fetchFromGitHub(forceRefresh = false) {
             // Check cooldown
             if (cooldownEndTime > Date.now()) {
@@ -955,8 +969,8 @@
 
             try {
                 const [filesResponse, commitsResponse] = await Promise.all([
-                    fetch(API_URL),
-                    fetch(COMMITS_API)
+                    fetchWithAuth(API_URL),
+                    fetchWithAuth(COMMITS_API)
                 ]);
 
                 if (filesResponse.status === 403) {
