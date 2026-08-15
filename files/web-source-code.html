@@ -1,0 +1,324 @@
+<!-- this fil contains source code for this site
+* Copyright (C) dryfish09
+* This file is under AGPL v2.0 license
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleDB - Lightweight File Archive</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+        .badge {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin: 1.5rem 0;
+        }
+        .card h2 {
+            color: #2b6cb0;
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .file-list {
+            list-style: none;
+        }
+        .file-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+        .file-link {
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .file-link:hover {
+            text-decoration: underline;
+        }
+        .file-size {
+            color: #718096;
+            font-size: 0.875rem;
+            background: #edf2f7;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+        }
+        .empty-state {
+            color: #a0aec0;
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .usage {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            color: #718096;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        .loading {
+            text-align: center;
+            padding: 1.5rem 0;
+            color: #718096;
+        }
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+        .error {
+            color: #e53e3e;
+            background: #fff5f5;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .file-icon {
+            margin-right: 0.5rem;
+        }
+        .file-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .file-date {
+            color: #a0aec0;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>📦 SimpleDB</h1>
+    <span class="badge">⚡ Lightweight Archive</span>
+    
+    <div class="card">
+        <h2>📋 About</h2>
+        <p><strong>SimpleDB</strong> is a minimal file archive system. Files stored here are available for direct download via permanent URLs.</p>
+        <p style="margin-top: 0.5rem;">📌 <strong>Files are fetched live from the GitHub repository.</strong></p>
+    </div>
+
+    <div class="card">
+        <h2>📁 Available Files (First 10)</h2>
+        <div id="file-list-container">
+            <div class="loading">Loading files</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🔗 Usage</h2>
+        <p>Files are accessible via:</p>
+        <div class="usage">
+            https://dryfish09.github.io/simpledb/files/<strong>filename.ext</strong>
+        </div>
+        <p style="margin-top: 1rem; font-size: 0.95rem;">Example: <code>https://dryfish09.github.io/simpledb/files/sample.pdf</code></p>
+    </div>
+
+    <div class="card">
+        <h2>📝 How to Add Files</h2>
+        <ol style="padding-left: 1.5rem; margin-top: 0.5rem;">
+            <li>Place your file in the <code>/files/</code> directory</li>
+            <li>Commit and push to GitHub</li>
+            <li>File becomes available at the URL above</li>
+            <li>Refresh this page to see it in the list</li>
+        </ol>
+    </div>
+
+    <footer>
+        <p>🚀 <a href="https://github.com/dryfish09/SimpleDB" style="color: #2b6cb0; text-decoration: none;">View on GitHub</a> &middot; SimpleDB &middot; Open source</p>
+    </footer>
+
+    <script>
+        const USERNAME = 'dryfish09';
+        const REPO = 'SimpleDB';
+        const FILES_PATH = 'files';
+        const API_URL = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILES_PATH}`;
+
+        async function fetchFiles() {
+            const container = document.getElementById('file-list-container');
+            
+            try {
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <p>📂 The <code>/files/</code> directory doesn't exist yet.</p>
+                                <p style="font-size: 0.9rem; margin-top: 0.25rem;">Create it and add some files!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Filter only files (not directories)
+                const files = data
+                    .filter(item => item.type === 'file')
+                    .slice(0, 10); // Get first 10 files
+                
+                if (files.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <p>✨ No files found in the <code>/files/</code> directory.</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.25rem;">Add some files to get started!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Format file size
+                function formatSize(bytes) {
+                    if (bytes < 1024) return bytes + ' B';
+                    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                }
+                
+                // Format date
+                function formatDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+                }
+                
+                // Get file extension icon
+                function getFileIcon(filename) {
+                    const ext = filename.split('.').pop().toLowerCase();
+                    const icons = {
+                        'pdf': '📄',
+                        'doc': '📝',
+                        'docx': '📝',
+                        'txt': '📃',
+                        'jpg': '🖼️',
+                        'jpeg': '🖼️',
+                        'png': '🖼️',
+                        'gif': '🖼️',
+                        'svg': '🖼️',
+                        'zip': '📦',
+                        'rar': '📦',
+                        '7z': '📦',
+                        'tar': '📦',
+                        'gz': '📦',
+                        'mp3': '🎵',
+                        'wav': '🎵',
+                        'mp4': '🎬',
+                        'avi': '🎬',
+                        'mov': '🎬',
+                        'exe': '⚙️',
+                        'dmg': '💿',
+                        'apk': '📱',
+                        'json': '📊',
+                        'xml': '📊',
+                        'csv': '📊',
+                        'html': '🌐',
+                        'css': '🎨',
+                        'js': '⚡',
+                        'py': '🐍',
+                        'java': '☕',
+                        'cpp': '⚙️',
+                        'c': '⚙️',
+                        'sh': '💻'
+                    };
+                    return icons[ext] || '📎';
+                }
+                
+                // Build file list HTML
+                let html = `<ul class="file-list">`;
+                files.forEach(file => {
+                    const icon = getFileIcon(file.name);
+                    const size = formatSize(file.size);
+                    const date = formatDate(file.commit?.commit?.committer?.date || file.sha);
+                    
+                    html += `
+                        <li>
+                            <div class="file-meta">
+                                <span class="file-icon">${icon}</span>
+                                <a href="https://${USERNAME}.github.io/${REPO}/${FILES_PATH}/${file.name}" 
+                                   class="file-link" 
+                                   target="_blank">
+                                    ${file.name}
+                                </a>
+                                <span class="file-date">📅 ${date}</span>
+                            </div>
+                            <span class="file-size">${size}</span>
+                        </li>
+                    `;
+                });
+                html += `</ul>`;
+                
+                if (data.length > 10) {
+                    html += `<p style="text-align: center; color: #a0aec0; margin-top: 1rem; font-size: 0.9rem;">
+                        Showing 10 of ${data.length} files
+                    </p>`;
+                }
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error fetching files:', error);
+                container.innerHTML = `
+                    <div class="error">
+                        ❌ Failed to load files. Please try again later.
+                        <br><small style="color: #718096;">${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        // Fetch files when page loads
+        document.addEventListener('DOMContentLoaded', fetchFiles);
+    </script>
+</body>
+</html>
