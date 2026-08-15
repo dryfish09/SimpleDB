@@ -1,0 +1,162 @@
+DRYFISH LICENSE
+Version 1.1.3, July 2026
+
+Copyright (c) [YEAR] [AUTHOR NAME]
+
+SPDX-License-Identifier: DryfishLicense-1.1.3
+
+I. GRANT OF RIGHTS
+You are permitted to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to allow others to do the same, subject
+to the terms below.
+
+This grant applies to both commercial and non-commercial purposes, and includes
+the right to integrate the Software into proprietary (closed-source) projects
+without requiring the source code of the combined work to be disclosed.
+
+II. ATTRIBUTION REQUIREMENT
+Any distribution of the Software, whether modified or unmodified, must retain
+the above copyright notice and this permission notice in all copies or
+substantial portions of the Software.
+
+III. PROJECT RENAMING OBLIGATION
+When you distribute a modified version of the Software as a standalone project,
+you MUST rename the project to a name that is clearly different from the
+original. This includes, but is not limited to:
+
+- Repository name
+- Binary/executable name
+- Logo and visual branding
+
+"Clearly different" means different root words and distinct visual identity —
+not just changing case, punctuation, spacing, or adding numbers/suffixes.
+
+EXCEPTIONS — You are NOT required to rename:
+
+Library/Dependency usage — internal package names, class names, or
+namespaces may remain unchanged. Only the distribution name (e.g., JAR
+filename, npm package name, PyPI package name) must be renamed if
+distributed as a separate product.
+
+Internal use — modifications used only within your organization.
+
+Unmodified distribution — verbatim copies.
+
+Forking for contribution purposes — if you fork the repository
+primarily to propose changes back to the original project (e.g., via pull
+requests), you are NOT required to rename your fork. You may rename it if
+you wish, but it is not mandatory. This exception applies regardless of
+whether your contributions are eventually accepted.
+
+If you are unsure whether your use case requires renaming, contact the original
+author for clarification.
+
+IV. PATENT GRANT
+Each contributor to the Software grants you a non-exclusive, worldwide,
+royalty-free, irrevocable patent license to make, have made, use, offer to
+sell, sell, import, and otherwise transfer the Software, including any
+modifications or derivative works created by you.
+
+This patent license applies only to patent claims that are necessarily
+infringed by the contributor's contribution(s) alone or by combination of
+their contribution(s) with the Software to which they contributed.
+
+If you institute patent litigation against any entity (including a cross-claim
+or counterclaim in a lawsuit) alleging that the Software or a contribution
+incorporated within the Software constitutes direct or contributory patent
+infringement, then the rights granted to you under this license for the
+Software shall terminate automatically.
+
+V. DISCLAIMER OF WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+VI. TERMINATION AND RESTORATION
+6.1 Automatic Termination
+
+Any rights granted under this license will terminate automatically and
+immediately if you fail to comply with Section II (Attribution Requirement),
+Section III (Project Renaming Obligation), or Section IV (Patent Grant).
+
+6.2 Restoration of Rights
+
+If your license terminates under Section 6.1, your rights are automatically
+restored upon the earliest of:
+
+a) Cure Period — You remedy the violation within 30 days of becoming
+aware of it (or receiving written notice from the copyright holder), and
+provide written confirmation of the cure to the copyright holder.
+
+b) Explicit Reinstatement — The copyright holder explicitly reinstates
+your rights in writing.
+
+c) Good Faith Correction — You discontinue all distribution of the
+Software and any derivative works, correct the violation, and recommence
+distribution in full compliance with this license. Restoration takes effect
+at the moment you resume compliant distribution.
+
+6.3 Permanent Termination (No Restoration)
+
+Restoration under Section 6.2 is not available if:
+
+a) You have previously had your license terminated and restored under this
+Section more than twice within any 24-month period; or
+
+b) The violation involved patent litigation under Section IV, in which
+case termination is permanent and no restoration is possible.
+
+6.4 Effect of Restoration
+
+Upon restoration, all rights granted under this license are reinstated as if
+the termination never occurred. You may resume distribution, modification, and
+use of the Software under the same terms, provided you remain in compliance
+going forward.
+
+VII. ACCEPTANCE
+By using, copying, modifying, or distributing the Software, you indicate your
+acceptance of all terms and conditions of this license.
+
+VIII. GOVERNING LAW
+This license shall be governed by and construed in accordance with the laws of
+California, United States, without regard to its conflict of law provisions.
+
+IX. LICENSE VERSIONING
+This license is identified by SPDX-License-Identifier: DryfishLicense-1.1.3.
+Future versions may be released by the original author or designated
+maintainers. You may use any version of this license for your project,
+but you MUST specify which version applies to your distribution
+(e.g., "DryfishLicense-1.1.3" in your LICENSE file).
+
+If a future version is released, you are NOT required to upgrade to the
+new version. You may continue using the version you originally chose.
+
+"Dryfish" is the name of this license, not the name of the software.
+
+IMPORTANT REMINDERS
+If you are using this software as a library dependency within your project,
+you do not need to rename anything. The renaming requirement only
+applies if you distribute the library itself as a standalone product.
+
+If you modify the software for internal use only (not distributed outside
+your organization), you do not need to rename anything.
+
+If you distribute the software without modifications, you do not need
+to rename anything.
+
+If you fork the software primarily to contribute changes back to the
+original project, you do not need to rename your fork.
+
+The renaming obligation only applies when you create a standalone forked
+project that is distributed as a separate product with its own identity.
+
+If your license terminates, you have 30 days to cure the violation
+before losing your rights permanently (except for patent litigation
+violations, which are permanent immediately).
+
+If you are unsure whether your use case requires renaming, contact the original
+author for clarification.
