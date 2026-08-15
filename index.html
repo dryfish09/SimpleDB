@@ -70,6 +70,7 @@
             background: #edf2f7;
             padding: 0.25rem 0.75rem;
             border-radius: 12px;
+            white-space: nowrap;
         }
         .empty-state {
             color: #a0aec0;
@@ -128,6 +129,28 @@
             color: #a0aec0;
             font-size: 0.8rem;
         }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .file-size-mobile {
+            display: none;
+        }
+        @media (max-width: 600px) {
+            .file-list li {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .file-size {
+                align-self: flex-start;
+            }
+            .file-meta {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -176,14 +199,21 @@
         const FILES_PATH = 'files';
         const API_URL = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILES_PATH}`;
 
+        // Also fetch commits to get file dates
+        const COMMITS_API = `https://api.github.com/repos/${USERNAME}/${REPO}/commits?path=${FILES_PATH}&per_page=100`;
+
         async function fetchFiles() {
             const container = document.getElementById('file-list-container');
             
             try {
-                const response = await fetch(API_URL);
+                // Fetch files and commits in parallel
+                const [filesResponse, commitsResponse] = await Promise.all([
+                    fetch(API_URL),
+                    fetch(COMMITS_API)
+                ]);
                 
-                if (!response.ok) {
-                    if (response.status === 404) {
+                if (!filesResponse.ok) {
+                    if (filesResponse.status === 404) {
                         container.innerHTML = `
                             <div class="empty-state">
                                 <p>📂 The <code>/files/</code> directory doesn't exist yet.</p>
@@ -192,17 +222,22 @@
                         `;
                         return;
                     }
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${filesResponse.status}`);
                 }
                 
-                const data = await response.json();
+                const files = await filesResponse.json();
+                let commits = [];
+                
+                if (commitsResponse.ok) {
+                    commits = await commitsResponse.json();
+                }
                 
                 // Filter only files (not directories)
-                const files = data
+                const fileItems = files
                     .filter(item => item.type === 'file')
                     .slice(0, 10); // Get first 10 files
                 
-                if (files.length === 0) {
+                if (fileItems.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <p>✨ No files found in the <code>/files/</code> directory.</p>
@@ -211,6 +246,23 @@
                     `;
                     return;
                 }
+                
+                // Create a map of filename to last commit date
+                const fileDateMap = new Map();
+                commits.forEach(commit => {
+                    if (commit.files) {
+                        commit.files.forEach(file => {
+                            if (file.filename && file.filename.startsWith(`${FILES_PATH}/`)) {
+                                const filename = file.filename.replace(`${FILES_PATH}/`, '');
+                                const date = commit.commit.committer.date;
+                                // Keep the most recent date for each file
+                                if (!fileDateMap.has(filename) || new Date(date) > new Date(fileDateMap.get(filename))) {
+                                    fileDateMap.set(filename, date);
+                                }
+                            }
+                        });
+                    }
+                });
                 
                 // Format file size
                 function formatSize(bytes) {
@@ -221,12 +273,20 @@
                 
                 // Format date
                 function formatDate(dateString) {
-                    const date = new Date(dateString);
-                    return date.toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                    });
+                    try {
+                        const date = new Date(dateString);
+                        if (isNaN(date.getTime())) {
+                            // Try to get date from file's sha (approximate)
+                            return 'Recently added';
+                        }
+                        return date.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                    } catch (e) {
+                        return 'Recently added';
+                    }
                 }
                 
                 // Get file extension icon
@@ -242,6 +302,7 @@
                         'png': '🖼️',
                         'gif': '🖼️',
                         'svg': '🖼️',
+                        'webp': '🖼️',
                         'zip': '📦',
                         'rar': '📦',
                         '7z': '📦',
@@ -265,17 +326,21 @@
                         'java': '☕',
                         'cpp': '⚙️',
                         'c': '⚙️',
-                        'sh': '💻'
+                        'sh': '💻',
+                        'jar': '📦',
+                        'war': '📦',
+                        'class': '☕'
                     };
                     return icons[ext] || '📎';
                 }
                 
                 // Build file list HTML
                 let html = `<ul class="file-list">`;
-                files.forEach(file => {
+                fileItems.forEach(file => {
                     const icon = getFileIcon(file.name);
                     const size = formatSize(file.size);
-                    const date = formatDate(file.commit?.commit?.committer?.date || file.sha);
+                    const date = fileDateMap.get(file.name) || file.sha;
+                    const dateStr = formatDate(date);
                     
                     html += `
                         <li>
@@ -286,7 +351,7 @@
                                    target="_blank">
                                     ${file.name}
                                 </a>
-                                <span class="file-date">📅 ${date}</span>
+                                <span class="file-date">📅 ${dateStr}</span>
                             </div>
                             <span class="file-size">${size}</span>
                         </li>
@@ -294,9 +359,10 @@
                 });
                 html += `</ul>`;
                 
-                if (data.length > 10) {
+                const totalFiles = files.filter(item => item.type === 'file').length;
+                if (totalFiles > 10) {
                     html += `<p style="text-align: center; color: #a0aec0; margin-top: 1rem; font-size: 0.9rem;">
-                        Showing 10 of ${data.length} files
+                        Showing 10 of ${totalFiles} files
                     </p>`;
                 }
                 
