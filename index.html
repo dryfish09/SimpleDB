@@ -389,6 +389,13 @@
             margin-bottom: 1rem;
         }
 
+        .filter-hint {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             .search-container {
                 flex-direction: column;
@@ -471,6 +478,7 @@
                 <button class="filter-btn" data-filter="video">🎬 Video</button>
                 <button class="filter-btn" data-filter="archive">📦 Archive</button>
             </div>
+            <div class="filter-hint">💡 "Binary" includes executables, "Executable" shows only runnable files</div>
         </div>
 
         <div id="resultsInfo" class="results-info">Showing all files</div>
@@ -542,40 +550,58 @@
             'mp3': '🎵', 'wav': '🎵', 'flac': '🎵', 'aac': '🎵',
             'mp4': '🎬', 'avi': '🎬', 'mov': '🎬', 'mkv': '🎬',
             'webm': '🎬', 'wmv': '🎬',
-            'exe': '⚙️', 'dmg': '💿', 'apk': '📱',
+            'exe': '⚙️', 'dmg': '💿', 'apk': '📱', 'msi': '📦',
             'json': '📊', 'xml': '📊', 'csv': '📊', 'yaml': '📊',
             'yml': '📊', 'toml': '📊',
             'html': '🌐', 'css': '🎨', 'js': '⚡', 'ts': '⚡',
             'py': '🐍', 'java': '☕', 'cpp': '⚙️', 'c': '⚙️',
             'h': '⚙️', 'hpp': '⚙️', 'sh': '💻', 'bash': '💻',
-            'jar': '📦', 'war': '📦', 'class': '☕',
+            'jar': '📦', 'war': '📦', 'class': '☕', 'jmod': '📦',
             'psd': '🎨', 'ai': '🎨', 'eps': '🎨',
             'ttf': '🔤', 'otf': '🔤', 'woff': '🔤', 'woff2': '🔤',
-            'iso': '💿', 'img': '💿'
+            'iso': '💿', 'img': '💿', 'dmg': '💿', 'pkg': '📦',
+            'deb': '📦', 'rpm': '📦', 'appimage': '📦', 'flatpak': '📦',
+            'bin': '🔧', 'dat': '🔧', 'db': '🔧', 'sqlite': '🔧',
+            'dll': '🔧', 'so': '🔧', 'dylib': '🔧', 'obj': '🔧'
         };
 
-        // File type detection
+        // File type detection with hierarchical categories
         function getFileType(filename) {
             const ext = filename.split('.').pop().toLowerCase();
             
-            const codeExtensions = ['js', 'ts', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'clj', 'lisp', 'sql', 'sh', 'bash', 'zsh', 'fish'];
-            const binaryExtensions = ['bin', 'dat', 'db', 'sqlite', 'mdb', 'accdb', 'dll', 'so', 'dylib', 'obj', 'o'];
-            const executableExtensions = ['exe', 'msi', 'dmg', 'pkg', 'deb', 'rpm', 'appimage', 'jar', 'war', 'class'];
-            const documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'md', 'tex', 'log', 'csv', 'xls', 'xlsx', 'ppt', 'pptx'];
-            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp', 'ico', 'tiff', 'psd', 'ai', 'eps'];
-            const audioExtensions = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'aiff', 'opus'];
-            const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv', 'flv', 'm4v', '3gp', 'ogv'];
-            const archiveExtensions = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'iso', 'img', 'cab', 'lzh'];
+            // Primary categories with their extensions
+            const codeExtensions = ['js', 'ts', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'clj', 'lisp', 'sql', 'sh', 'bash', 'zsh', 'fish', 'pl', 'pm', 'r', 'm', 'jl', 'ex', 'exs', 'erl', 'hrl', 'fs', 'fsx', 'cl', 'lsp'];
+            const executableExtensions = ['exe', 'msi', 'dmg', 'pkg', 'deb', 'rpm', 'appimage', 'flatpak', 'jar', 'war', 'class', 'jmod', 'apk', 'run', 'bin'];
+            const binaryExtensions = ['bin', 'dat', 'db', 'sqlite', 'mdb', 'accdb', 'dll', 'so', 'dylib', 'obj', 'o', 'lib', 'a', 'bc', 'wasm'];
+            const documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'md', 'tex', 'log', 'csv', 'xls', 'xlsx', 'ppt', 'pptx', 'odp', 'ods'];
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp', 'ico', 'tiff', 'tif', 'psd', 'ai', 'eps', 'raw', 'cr2', 'nef'];
+            const audioExtensions = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'aiff', 'opus', 'alac'];
+            const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv', 'flv', 'm4v', '3gp', 'ogv', 'mpeg', 'mpg'];
+            const archiveExtensions = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'iso', 'img', 'cab', 'lzh', 'lha', 'arj', 'zst'];
             
+            // Check in order of specificity (executable before binary)
+            if (executableExtensions.includes(ext)) return 'executable';
             if (codeExtensions.includes(ext)) return 'code';
             if (binaryExtensions.includes(ext)) return 'binary';
-            if (executableExtensions.includes(ext)) return 'executable';
             if (documentExtensions.includes(ext)) return 'document';
             if (imageExtensions.includes(ext)) return 'image';
             if (audioExtensions.includes(ext)) return 'audio';
             if (videoExtensions.includes(ext)) return 'video';
             if (archiveExtensions.includes(ext)) return 'archive';
             return 'unknown';
+        }
+
+        // Check if a file matches the filter (with hierarchy)
+        function matchesFilter(fileType, filterType) {
+            if (filterType === 'all') return true;
+            
+            // If filtering for binary, include executables (binaries are parent category)
+            if (filterType === 'binary') {
+                return fileType === 'binary' || fileType === 'executable';
+            }
+            
+            // Exact match for all other filters
+            return fileType === filterType;
         }
 
         // Save to cache
@@ -692,11 +718,11 @@
                 );
             }
             
-            // Apply filter
+            // Apply filter with hierarchy
             if (filterType !== 'all') {
                 filtered = filtered.filter(file => {
                     const type = getFileType(file.name);
-                    return type === filterType;
+                    return matchesFilter(type, filterType);
                 });
             }
             
@@ -730,11 +756,22 @@
             const filteredFiles = filterFiles(files, currentSearch, currentFilter);
             const totalFiles = files.filter(item => item.type === 'file').length;
             
-            // Update results info
+            // Update results info with better description
             if (filteredFiles.length === 0) {
-                resultsInfo.textContent = `No files found matching "${currentSearch || 'all files'}"`;
+                if (currentSearch.trim() && currentFilter !== 'all') {
+                    resultsInfo.textContent = `No ${getTypeLabel(currentFilter)} files found matching "${currentSearch.trim()}"`;
+                } else if (currentSearch.trim()) {
+                    resultsInfo.textContent = `No files found matching "${currentSearch.trim()}"`;
+                } else if (currentFilter !== 'all') {
+                    resultsInfo.textContent = `No ${getTypeLabel(currentFilter)} files found`;
+                } else {
+                    resultsInfo.textContent = 'No files found';
+                }
             } else if (currentSearch.trim() || currentFilter !== 'all') {
-                const filterLabel = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
+                let filterLabel = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
+                if (currentFilter === 'binary') {
+                    filterLabel = 'Binary (includes executables)';
+                }
                 resultsInfo.textContent = `Showing ${filteredFiles.length} of ${totalFiles} files (${filterLabel}${currentSearch.trim() ? `, search: "${currentSearch.trim()}"` : ''})`;
             } else {
                 resultsInfo.textContent = `Showing ${totalFiles} files`;
