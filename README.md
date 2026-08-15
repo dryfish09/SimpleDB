@@ -2,7 +2,7 @@
 # 📦 SimpleDB
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://dryfish09.github.io/SimpleDB/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: AGPL](https://img.shields.io/badge/License-AGPL-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/dryfish09/SimpleDB)](https://github.com/dryfish09/SimpleDB/stargazers)
 
 A lightweight, no-database file archive system hosted on GitHub Pages. SimpleDB provides permanent, publicly accessible URLs for your files with zero configuration.
