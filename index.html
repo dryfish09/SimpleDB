@@ -99,15 +99,16 @@
             padding: 1.5rem 0;
             color: #718096;
         }
-        .loading::after {
-            content: '...';
+        .loading-dots {
+            display: inline-block;
             animation: dots 1.5s steps(4, end) infinite;
         }
         @keyframes dots {
-            0% { content: ''; }
-            25% { content: '.'; }
-            50% { content: '..'; }
-            75% { content: '...'; }
+            0% { content: ''; opacity: 0; }
+            25% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+            75% { opacity: 0.9; }
+            100% { opacity: 1; }
         }
         .error {
             color: #e53e3e;
@@ -115,6 +116,14 @@
             padding: 1rem;
             border-radius: 8px;
             text-align: center;
+        }
+        .warning {
+            background: #fefcbf;
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: #744210;
+            font-size: 0.875rem;
+            margin-top: 1rem;
         }
         .file-icon {
             margin-right: 0.5rem;
@@ -179,12 +188,22 @@
         .cache-info .dot.stale {
             background: #ecc94b;
         }
+        .cache-info .dot.error {
+            background: #fc8181;
+        }
         .spinning {
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        .rate-limit {
+            background: #fefcbf;
+            border-left: 4px solid #d69e2e;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
         }
         @media (max-width: 600px) {
             .file-list li {
@@ -222,17 +241,19 @@
         <div class="header-actions">
             <h2>📁 Available Files (First 10)</h2>
             <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                <span class="cache-info" id="cacheInfo">
+                <span class="cache-info" id="cacheInfo" role="status" aria-live="polite">
                     <span class="dot" id="cacheDot"></span>
                     <span id="cacheStatus">Loading...</span>
                 </span>
-                <button class="refresh-btn" id="refreshBtn" title="Refresh file list">
+                <button class="refresh-btn" id="refreshBtn" aria-label="Refresh file list" title="Refresh file list">
                     <span id="refreshIcon">🔄</span> Refresh
                 </button>
             </div>
         </div>
-        <div id="file-list-container">
-            <div class="loading">Loading files</div>
+        <div id="file-list-container" role="region" aria-live="polite">
+            <div class="loading">
+                Loading files<span class="loading-dots">...</span>
+            </div>
         </div>
     </div>
 
@@ -277,6 +298,29 @@
         const cacheDot = document.getElementById('cacheDot');
 
         let isRefreshing = false;
+        let autoRefreshInterval = null;
+
+        // File extension icons mapping
+        const FILE_ICONS = {
+            'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📃',
+            'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+            'svg': '🖼️', 'webp': '🖼️', 'bmp': '🖼️', 'ico': '🖼️',
+            'zip': '📦', 'rar': '📦', '7z': '📦', 'tar': '📦',
+            'gz': '📦', 'bz2': '📦', 'xz': '📦',
+            'mp3': '🎵', 'wav': '🎵', 'flac': '🎵', 'aac': '🎵',
+            'mp4': '🎬', 'avi': '🎬', 'mov': '🎬', 'mkv': '🎬',
+            'webm': '🎬', 'wmv': '🎬',
+            'exe': '⚙️', 'dmg': '💿', 'apk': '📱',
+            'json': '📊', 'xml': '📊', 'csv': '📊', 'yaml': '📊',
+            'yml': '📊', 'toml': '📊',
+            'html': '🌐', 'css': '🎨', 'js': '⚡', 'ts': '⚡',
+            'py': '🐍', 'java': '☕', 'cpp': '⚙️', 'c': '⚙️',
+            'h': '⚙️', 'hpp': '⚙️', 'sh': '💻', 'bash': '💻',
+            'jar': '📦', 'war': '📦', 'class': '☕',
+            'psd': '🎨', 'ai': '🎨', 'eps': '🎨',
+            'ttf': '🔤', 'otf': '🔤', 'woff': '🔤', 'woff2': '🔤',
+            'iso': '💿', 'img': '💿'
+        };
 
         // Save to cache
         function saveToCache(data) {
@@ -314,15 +358,16 @@
         }
 
         // Update cache status display
-        function updateCacheStatus(isCached, isStale = false) {
-            if (isCached) {
-                if (isStale) {
-                    cacheDot.className = 'dot stale';
-                    cacheStatus.textContent = 'Cache stale (expired)';
-                } else {
-                    cacheDot.className = 'dot';
-                    cacheStatus.textContent = 'Cache valid';
-                }
+        function updateCacheStatus(status, isStale = false) {
+            if (status === 'valid') {
+                cacheDot.className = 'dot';
+                cacheStatus.textContent = 'Cache valid';
+            } else if (status === 'stale') {
+                cacheDot.className = 'dot stale';
+                cacheStatus.textContent = 'Cache stale (expired)';
+            } else if (status === 'rate-limited') {
+                cacheDot.className = 'dot error';
+                cacheStatus.textContent = 'Rate limited - using cache';
             } else {
                 cacheDot.className = 'dot stale';
                 cacheStatus.textContent = 'No cache';
@@ -356,36 +401,21 @@
         // Get file extension icon
         function getFileIcon(filename) {
             const ext = filename.split('.').pop().toLowerCase();
-            const icons = {
-                'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📃',
-                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
-                'svg': '🖼️', 'webp': '🖼️', 'bmp': '🖼️', 'ico': '🖼️',
-                'zip': '📦', 'rar': '📦', '7z': '📦', 'tar': '📦',
-                'gz': '📦', 'bz2': '📦', 'xz': '📦',
-                'mp3': '🎵', 'wav': '🎵', 'flac': '🎵', 'aac': '🎵',
-                'mp4': '🎬', 'avi': '🎬', 'mov': '🎬', 'mkv': '🎬',
-                'webm': '🎬', 'wmv': '🎬',
-                'exe': '⚙️', 'dmg': '💿', 'apk': '📱',
-                'json': '📊', 'xml': '📊', 'csv': '📊', 'yaml': '📊',
-                'yml': '📊', 'toml': '📊',
-                'html': '🌐', 'css': '🎨', 'js': '⚡', 'ts': '⚡',
-                'py': '🐍', 'java': '☕', 'cpp': '⚙️', 'c': '⚙️',
-                'h': '⚙️', 'hpp': '⚙️', 'sh': '💻', 'bash': '💻',
-                'jar': '📦', 'war': '📦', 'class': '☕',
-                'psd': '🎨', 'ai': '🎨', 'eps': '🎨',
-                'ttf': '🔤', 'otf': '🔤', 'woff': '🔤', 'woff2': '🔤',
-                'iso': '💿', 'img': '💿'
-            };
-            return icons[ext] || '📎';
+            return FILE_ICONS[ext] || '📎';
+        }
+
+        // Encode filename for URL
+        function encodeFilename(filename) {
+            return encodeURIComponent(filename);
         }
 
         // Render file list
         function renderFileList(files, commits) {
             // Create a map of filename to last commit date
             const fileDateMap = new Map();
-            if (commits) {
+            if (commits && Array.isArray(commits)) {
                 commits.forEach(commit => {
-                    if (commit.files) {
+                    if (commit.files && Array.isArray(commit.files)) {
                         commit.files.forEach(file => {
                             if (file.filename && file.filename.startsWith(`${FILES_PATH}/`)) {
                                 const filename = file.filename.replace(`${FILES_PATH}/`, '');
@@ -420,14 +450,16 @@
                 const size = formatSize(file.size);
                 const date = fileDateMap.get(file.name) || file.sha;
                 const dateStr = formatDate(date);
+                const encodedName = encodeFilename(file.name);
                 
                 html += `
                     <li>
                         <div class="file-meta">
-                            <span class="file-icon">${icon}</span>
-                            <a href="https://${USERNAME}.github.io/${REPO}/${FILES_PATH}/${file.name}" 
+                            <span class="file-icon" aria-hidden="true">${icon}</span>
+                            <a href="https://${USERNAME}.github.io/${REPO}/${FILES_PATH}/${encodedName}" 
                                class="file-link" 
-                               target="_blank">
+                               target="_blank"
+                               rel="noopener noreferrer">
                                 ${file.name}
                             </a>
                             <span class="file-date">📅 ${dateStr}</span>
@@ -462,7 +494,7 @@
                 const cachedData = loadFromCache();
                 if (cachedData) {
                     const isStale = (Date.now() - cachedData.timestamp) > CACHE_DURATION;
-                    updateCacheStatus(true, isStale);
+                    updateCacheStatus('valid', isStale);
                     renderFileList(cachedData.files, cachedData.commits);
                     isRefreshing = false;
                     refreshBtn.disabled = false;
@@ -472,7 +504,7 @@
                 }
             }
 
-            updateCacheStatus(false);
+            updateCacheStatus('stale');
 
             try {
                 // Fetch files and commits in parallel
@@ -480,6 +512,41 @@
                     fetch(API_URL),
                     fetch(COMMITS_API)
                 ]);
+
+                // Check for rate limiting
+                if (filesResponse.status === 403) {
+                    const remaining = filesResponse.headers.get('X-RateLimit-Remaining');
+                    if (remaining === '0') {
+                        const resetTime = parseInt(filesResponse.headers.get('X-RateLimit-Reset')) * 1000;
+                        const resetDate = new Date(resetTime);
+                        
+                        // Try to use cache
+                        const cachedData = loadFromCache();
+                        if (cachedData) {
+                            updateCacheStatus('rate-limited');
+                            renderFileList(cachedData.files, cachedData.commits);
+                            container.innerHTML += `
+                                <div class="rate-limit" role="alert">
+                                    ⚠️ GitHub API rate limit exceeded. Using cached data.
+                                    <br><small>Reset at ${resetDate.toLocaleTimeString()}</small>
+                                </div>
+                            `;
+                        } else {
+                            container.innerHTML = `
+                                <div class="error" role="alert">
+                                    ⚠️ GitHub API rate limit exceeded. Please try again after ${resetDate.toLocaleTimeString()}.
+                                    <br><small>No cached data available.</small>
+                                </div>
+                            `;
+                            updateCacheStatus('stale');
+                        }
+                        isRefreshing = false;
+                        refreshBtn.disabled = false;
+                        refreshIcon.textContent = '🔄';
+                        refreshIcon.className = '';
+                        return;
+                    }
+                }
 
                 if (!filesResponse.ok) {
                     if (filesResponse.status === 404) {
@@ -489,7 +556,13 @@
                                 <p style="font-size: 0.9rem; margin-top: 0.25rem;">Create it and add some files!</p>
                             </div>
                         `;
-                        updateCacheStatus(false);
+                        updateCacheStatus('stale');
+                        // Clear old cache
+                        localStorage.removeItem(CACHE_KEY);
+                        isRefreshing = false;
+                        refreshBtn.disabled = false;
+                        refreshIcon.textContent = '🔄';
+                        refreshIcon.className = '';
                         return;
                     }
                     throw new Error(`HTTP error! status: ${filesResponse.status}`);
@@ -502,10 +575,11 @@
                     commits = await commitsResponse.json();
                 }
 
-                // Save to cache
+                // Clear old cache and save new data
+                localStorage.removeItem(CACHE_KEY);
                 const cacheData = { files, commits };
                 saveToCache(cacheData);
-                updateCacheStatus(true);
+                updateCacheStatus('valid');
 
                 // Render the files
                 renderFileList(files, commits);
@@ -516,21 +590,22 @@
                 // Try to use stale cache if available
                 const cachedData = loadFromCache();
                 if (cachedData) {
-                    updateCacheStatus(true, true);
+                    updateCacheStatus('stale');
                     renderFileList(cachedData.files, cachedData.commits);
                     container.innerHTML += `
-                        <div style="margin-top: 1rem; padding: 0.75rem; background: #fefcbf; border-radius: 8px; color: #744210; font-size: 0.875rem;">
+                        <div class="warning" role="alert">
                             ⚠️ Using cached data (refresh failed). Will retry on next refresh.
+                            <br><small>${error.message}</small>
                         </div>
                     `;
                 } else {
                     container.innerHTML = `
-                        <div class="error">
+                        <div class="error" role="alert">
                             ❌ Failed to load files. Please try again later.
                             <br><small style="color: #718096;">${error.message}</small>
                         </div>
                     `;
-                    updateCacheStatus(false);
+                    updateCacheStatus('stale');
                 }
             } finally {
                 isRefreshing = false;
@@ -545,30 +620,38 @@
             fetchFromGitHub(true);
         });
 
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        });
+
         // Initial load
         document.addEventListener('DOMContentLoaded', () => {
             fetchFromGitHub(false);
-        });
-
-        // Auto-refresh when cache expires (if page is open)
-        setInterval(() => {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                try {
-                    const cacheData = JSON.parse(cached);
-                    const age = Date.now() - cacheData.timestamp;
-                    if (age > CACHE_DURATION) {
-                        // Cache expired - refresh in background
-                        fetchFromGitHub(true);
-                    } else {
-                        // Update status
-                        updateCacheStatus(true, false);
+            
+            // Auto-refresh when cache expires (if page is open)
+            autoRefreshInterval = setInterval(() => {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    try {
+                        const cacheData = JSON.parse(cached);
+                        const age = Date.now() - cacheData.timestamp;
+                        if (age > CACHE_DURATION) {
+                            // Cache expired - refresh in background
+                            fetchFromGitHub(true);
+                        } else {
+                            // Update status
+                            updateCacheStatus('valid');
+                        }
+                    } catch (e) {
+                        // Ignore
                     }
-                } catch (e) {
-                    // Ignore
                 }
-            }
-        }, 60000); // Check every minute
+            }, 60000); // Check every minute
+        });
     </script>
 </body>
 </html>
