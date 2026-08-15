@@ -175,17 +175,27 @@
             align-items: center;
             gap: 0.5rem;
             height: 40px;
+            position: relative;
+            min-width: 120px;
+            justify-content: center;
         }
-        .refresh-btn:hover {
+        .refresh-btn:hover:not(:disabled) {
             background: #1a4f8b;
             transform: scale(1.02);
         }
-        .refresh-btn:active {
+        .refresh-btn:active:not(:disabled) {
             transform: scale(0.98);
         }
         .refresh-btn:disabled {
-            opacity: 0.6;
+            opacity: 0.7;
             cursor: not-allowed;
+        }
+        .refresh-btn .cooldown-timer {
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.1rem 0.5rem;
+            border-radius: 12px;
+            margin-left: 0.25rem;
         }
         .cache-info {
             font-size: 0.8rem;
@@ -454,7 +464,9 @@
                     <span id="cacheStatus">Loading...</span>
                 </span>
                 <button class="refresh-btn" id="refreshBtn" aria-label="Refresh file list" title="Refresh file list">
-                    <span id="refreshIcon">🔄</span> Refresh
+                    <span id="refreshIcon">🔄</span> 
+                    <span id="refreshText">Refresh</span>
+                    <span class="cooldown-timer" id="cooldownTimer" style="display:none;"></span>
                 </button>
             </div>
         </div>
@@ -518,6 +530,7 @@
         const FILES_PATH = 'files';
         const CACHE_KEY = 'simpledb_cache';
         const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+        const REFRESH_COOLDOWN = 50; // 50 seconds cooldown
 
         const API_URL = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILES_PATH}`;
         const COMMITS_API = `https://api.github.com/repos/${USERNAME}/${REPO}/commits?path=${FILES_PATH}&per_page=100`;
@@ -526,6 +539,8 @@
         const container = document.getElementById('file-list-container');
         const refreshBtn = document.getElementById('refreshBtn');
         const refreshIcon = document.getElementById('refreshIcon');
+        const refreshText = document.getElementById('refreshText');
+        const cooldownTimer = document.getElementById('cooldownTimer');
         const cacheStatus = document.getElementById('cacheStatus');
         const cacheDot = document.getElementById('cacheDot');
         const searchInput = document.getElementById('searchInput');
@@ -539,6 +554,9 @@
         let currentCommits = [];
         let currentFilter = 'all';
         let currentSearch = '';
+        let cooldownTimeout = null;
+        let cooldownEndTime = 0;
+        let lastRefreshTime = 0;
 
         // File extension icons mapping
         const FILE_ICONS = {
@@ -569,7 +587,6 @@
         function getFileType(filename) {
             const ext = filename.split('.').pop().toLowerCase();
             
-            // Primary categories with their extensions
             const codeExtensions = ['js', 'ts', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'clj', 'lisp', 'sql', 'sh', 'bash', 'zsh', 'fish', 'pl', 'pm', 'r', 'm', 'jl', 'ex', 'exs', 'erl', 'hrl', 'fs', 'fsx', 'cl', 'lsp'];
             const executableExtensions = ['exe', 'msi', 'dmg', 'pkg', 'deb', 'rpm', 'appimage', 'flatpak', 'jar', 'war', 'class', 'jmod', 'apk', 'run', 'bin'];
             const binaryExtensions = ['bin', 'dat', 'db', 'sqlite', 'mdb', 'accdb', 'dll', 'so', 'dylib', 'obj', 'o', 'lib', 'a', 'bc', 'wasm'];
@@ -579,7 +596,6 @@
             const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv', 'flv', 'm4v', '3gp', 'ogv', 'mpeg', 'mpg'];
             const archiveExtensions = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'iso', 'img', 'cab', 'lzh', 'lha', 'arj', 'zst'];
             
-            // Check in order of specificity (executable before binary)
             if (executableExtensions.includes(ext)) return 'executable';
             if (codeExtensions.includes(ext)) return 'code';
             if (binaryExtensions.includes(ext)) return 'binary';
@@ -591,17 +607,86 @@
             return 'unknown';
         }
 
-        // Check if a file matches the filter (with hierarchy)
         function matchesFilter(fileType, filterType) {
             if (filterType === 'all') return true;
-            
-            // If filtering for binary, include executables (binaries are parent category)
             if (filterType === 'binary') {
                 return fileType === 'binary' || fileType === 'executable';
             }
-            
-            // Exact match for all other filters
             return fileType === filterType;
+        }
+
+        // Cooldown management
+        function startCooldown() {
+            cooldownEndTime = Date.now() + (REFRESH_COOLDOWN * 1000);
+            lastRefreshTime = Date.now();
+            
+            // Save cooldown state to sessionStorage to prevent reload exploits
+            try {
+                sessionStorage.setItem('simpledb_cooldown', cooldownEndTime.toString());
+            } catch (e) {
+                // Ignore
+            }
+            
+            updateCooldownUI();
+        }
+
+        function updateCooldownUI() {
+            const now = Date.now();
+            const remaining = Math.max(0, cooldownEndTime - now);
+            
+            if (remaining > 0) {
+                const seconds = Math.ceil(remaining / 1000);
+                refreshBtn.disabled = true;
+                cooldownTimer.style.display = 'inline';
+                cooldownTimer.textContent = `${seconds}s`;
+                refreshText.textContent = 'Wait';
+                refreshIcon.textContent = '⏳';
+                refreshIcon.className = '';
+                
+                // Update every second
+                if (cooldownTimeout) {
+                    clearTimeout(cooldownTimeout);
+                }
+                cooldownTimeout = setTimeout(() => {
+                    updateCooldownUI();
+                }, 1000);
+            } else {
+                // Cooldown finished
+                refreshBtn.disabled = false;
+                cooldownTimer.style.display = 'none';
+                refreshText.textContent = 'Refresh';
+                refreshIcon.textContent = '🔄';
+                refreshIcon.className = '';
+                cooldownEndTime = 0;
+                cooldownTimeout = null;
+                
+                // Clear session storage
+                try {
+                    sessionStorage.removeItem('simpledb_cooldown');
+                } catch (e) {
+                    // Ignore
+                }
+            }
+        }
+
+        // Check for existing cooldown on page load/reload
+        function checkExistingCooldown() {
+            try {
+                const savedCooldown = sessionStorage.getItem('simpledb_cooldown');
+                if (savedCooldown) {
+                    const endTime = parseInt(savedCooldown);
+                    if (!isNaN(endTime) && endTime > Date.now()) {
+                        cooldownEndTime = endTime;
+                        updateCooldownUI();
+                        return true;
+                    } else {
+                        sessionStorage.removeItem('simpledb_cooldown');
+                    }
+                }
+            } catch (e) {
+                // Ignore
+            }
+            return false;
         }
 
         // Save to cache
@@ -710,7 +795,6 @@
         function filterFiles(files, searchTerm, filterType) {
             let filtered = files.filter(item => item.type === 'file');
             
-            // Apply search
             if (searchTerm.trim()) {
                 const term = searchTerm.toLowerCase().trim();
                 filtered = filtered.filter(file => 
@@ -718,7 +802,6 @@
                 );
             }
             
-            // Apply filter with hierarchy
             if (filterType !== 'all') {
                 filtered = filtered.filter(file => {
                     const type = getFileType(file.name);
@@ -734,7 +817,6 @@
             currentFiles = files;
             currentCommits = commits;
             
-            // Create a map of filename to last commit date
             const fileDateMap = new Map();
             if (commits && Array.isArray(commits)) {
                 commits.forEach(commit => {
@@ -752,11 +834,9 @@
                 });
             }
 
-            // Filter files
             const filteredFiles = filterFiles(files, currentSearch, currentFilter);
             const totalFiles = files.filter(item => item.type === 'file').length;
             
-            // Update results info with better description
             if (filteredFiles.length === 0) {
                 if (currentSearch.trim() && currentFilter !== 'all') {
                     resultsInfo.textContent = `No ${getTypeLabel(currentFilter)} files found matching "${currentSearch.trim()}"`;
@@ -835,12 +915,25 @@
 
         // Fetch files from GitHub
         async function fetchFromGitHub(forceRefresh = false) {
+            // Check cooldown
+            if (cooldownEndTime > Date.now()) {
+                const remaining = Math.ceil((cooldownEndTime - Date.now()) / 1000);
+                container.innerHTML = `
+                    <div class="warning" role="alert">
+                        ⏳ Please wait ${remaining} seconds before refreshing again.
+                        <br><small>Cooldown period is ${REFRESH_COOLDOWN} seconds to prevent API rate limiting.</small>
+                    </div>
+                `;
+                return;
+            }
+
             if (isRefreshing) return;
             
             isRefreshing = true;
             refreshBtn.disabled = true;
             refreshIcon.textContent = '⏳';
             refreshIcon.className = 'spinning';
+            refreshText.textContent = 'Loading...';
 
             // Check cache first (unless forced refresh)
             if (!forceRefresh) {
@@ -853,6 +946,7 @@
                     refreshBtn.disabled = false;
                     refreshIcon.textContent = '🔄';
                     refreshIcon.className = '';
+                    refreshText.textContent = 'Refresh';
                     return;
                 }
             }
@@ -894,6 +988,7 @@
                         refreshBtn.disabled = false;
                         refreshIcon.textContent = '🔄';
                         refreshIcon.className = '';
+                        refreshText.textContent = 'Refresh';
                         return;
                     }
                 }
@@ -912,6 +1007,7 @@
                         refreshBtn.disabled = false;
                         refreshIcon.textContent = '🔄';
                         refreshIcon.className = '';
+                        refreshText.textContent = 'Refresh';
                         return;
                     }
                     throw new Error(`HTTP error! status: ${filesResponse.status}`);
@@ -929,6 +1025,9 @@
                 saveToCache(cacheData);
                 updateCacheStatus('valid');
                 renderFileList(files, commits);
+
+                // Start cooldown after successful refresh
+                startCooldown();
 
             } catch (error) {
                 console.error('Error fetching files:', error);
@@ -954,9 +1053,12 @@
                 }
             } finally {
                 isRefreshing = false;
-                refreshBtn.disabled = false;
+                if (!refreshBtn.disabled) {
+                    refreshBtn.disabled = false;
+                }
                 refreshIcon.textContent = '🔄';
                 refreshIcon.className = '';
+                refreshText.textContent = 'Refresh';
             }
         }
 
@@ -999,12 +1101,36 @@
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
             }
+            if (cooldownTimeout) {
+                clearTimeout(cooldownTimeout);
+                cooldownTimeout = null;
+            }
         });
 
         // Initial load
         document.addEventListener('DOMContentLoaded', () => {
-            fetchFromGitHub(false);
+            // Check for existing cooldown from previous session
+            const hasCooldown = checkExistingCooldown();
             
+            // If no cooldown, check cache
+            if (!hasCooldown) {
+                const cachedData = loadFromCache();
+                if (cachedData) {
+                    renderFileList(cachedData.files, cachedData.commits);
+                    updateCacheStatus('valid');
+                } else {
+                    fetchFromGitHub(false);
+                }
+            } else {
+                // Load from cache if available during cooldown
+                const cachedData = loadFromCache();
+                if (cachedData) {
+                    renderFileList(cachedData.files, cachedData.commits);
+                    updateCacheStatus('valid');
+                }
+            }
+            
+            // Auto-refresh when cache expires (if page is open)
             autoRefreshInterval = setInterval(() => {
                 const cached = localStorage.getItem(CACHE_KEY);
                 if (cached) {
@@ -1012,7 +1138,10 @@
                         const cacheData = JSON.parse(cached);
                         const age = Date.now() - cacheData.timestamp;
                         if (age > CACHE_DURATION) {
-                            fetchFromGitHub(true);
+                            // Only auto-refresh if not in cooldown
+                            if (cooldownEndTime <= Date.now()) {
+                                fetchFromGitHub(true);
+                            }
                         } else {
                             updateCacheStatus('valid');
                         }
