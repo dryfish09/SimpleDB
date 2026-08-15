@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 2rem;
             background: #f5f7fa;
@@ -52,6 +52,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.2s;
+        }
+        .file-list li:hover {
+            background: #f7fafc;
+            margin: 0 -0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            border-radius: 8px;
         }
         .file-list li:last-child {
             border-bottom: none;
@@ -133,6 +141,7 @@
             align-items: center;
             gap: 1rem;
             flex-wrap: wrap;
+            flex: 1;
         }
         .file-date {
             color: #a0aec0;
@@ -144,7 +153,13 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
         .refresh-btn {
             background: #2b6cb0;
@@ -159,6 +174,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            height: 40px;
         }
         .refresh-btn:hover {
             background: #1a4f8b;
@@ -205,7 +221,196 @@
             border-radius: 4px;
             margin-top: 1rem;
         }
-        @media (max-width: 600px) {
+
+        /* Search and Filter Styles */
+        .search-container {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0 0.75rem;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus-within {
+            border-color: #2b6cb0;
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .search-box .search-icon {
+            color: #a0aec0;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+        .search-box input {
+            border: none;
+            padding: 0.625rem 0;
+            font-size: 0.95rem;
+            width: 100%;
+            outline: none;
+            background: transparent;
+        }
+        .search-box input::placeholder {
+            color: #a0aec0;
+        }
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .filter-btn {
+            padding: 0.4rem 0.9rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #4a5568;
+        }
+        .filter-btn:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        .filter-btn.active {
+            background: #2b6cb0;
+            color: white;
+            border-color: #2b6cb0;
+        }
+        .filter-btn.active:hover {
+            background: #1a4f8b;
+            border-color: #1a4f8b;
+        }
+        .filter-btn .count {
+            background: rgba(255,255,255,0.2);
+            padding: 0.1rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 0.25rem;
+        }
+        .filter-btn.active .count {
+            background: rgba(255,255,255,0.3);
+        }
+        .results-info {
+            font-size: 0.875rem;
+            color: #718096;
+            padding: 0.5rem 0;
+        }
+        .clear-search-btn {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            font-size: 1.1rem;
+            display: none;
+        }
+        .clear-search-btn:hover {
+            color: #718096;
+        }
+        .clear-search-btn.visible {
+            display: block;
+        }
+
+        .file-tag {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .file-tag.code {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+        .file-tag.binary {
+            background: #fefcbf;
+            color: #744210;
+        }
+        .file-tag.executable {
+            background: #feb2b2;
+            color: #742a2a;
+        }
+        .file-tag.document {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .file-tag.image {
+            background: #e9d8fd;
+            color: #44337a;
+        }
+        .file-tag.audio {
+            background: #fed7d0;
+            color: #742a2a;
+        }
+        .file-tag.video {
+            background: #fbd38d;
+            color: #744210;
+        }
+        .file-tag.archive {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .file-tag.unknown {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem 0;
+            color: #a0aec0;
+        }
+        .no-results .emoji {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box {
+                min-width: unset;
+            }
+            .filter-group {
+                justify-content: center;
+            }
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .refresh-btn {
+                justify-content: center;
+            }
             .file-list li {
                 flex-direction: column;
                 align-items: flex-start;
@@ -217,12 +422,8 @@
             .file-meta {
                 width: 100%;
             }
-            .header-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .refresh-btn {
-                justify-content: center;
+            .file-tag {
+                font-size: 0.65rem;
             }
         }
     </style>
@@ -239,8 +440,8 @@
 
     <div class="card">
         <div class="header-actions">
-            <h2>📁 Available Files (First 10)</h2>
-            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <h2>📁 Available Files</h2>
+            <div class="controls">
                 <span class="cache-info" id="cacheInfo" role="status" aria-live="polite">
                     <span class="dot" id="cacheDot"></span>
                     <span id="cacheStatus">Loading...</span>
@@ -250,6 +451,29 @@
                 </button>
             </div>
         </div>
+
+        <!-- Search and Filter -->
+        <div class="search-container">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search files by name..." aria-label="Search files">
+                <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">✕</button>
+            </div>
+            <div class="filter-group" role="group" aria-label="File type filters">
+                <label>📂 Filter:</label>
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="code">💻 Code</button>
+                <button class="filter-btn" data-filter="binary">🔧 Binary</button>
+                <button class="filter-btn" data-filter="executable">⚡ Executable</button>
+                <button class="filter-btn" data-filter="document">📄 Document</button>
+                <button class="filter-btn" data-filter="image">🖼️ Image</button>
+                <button class="filter-btn" data-filter="audio">🎵 Audio</button>
+                <button class="filter-btn" data-filter="video">🎬 Video</button>
+                <button class="filter-btn" data-filter="archive">📦 Archive</button>
+            </div>
+        </div>
+
+        <div id="resultsInfo" class="results-info">Showing all files</div>
         <div id="file-list-container" role="region" aria-live="polite">
             <div class="loading">
                 Loading files<span class="loading-dots">...</span>
@@ -296,9 +520,17 @@
         const refreshIcon = document.getElementById('refreshIcon');
         const cacheStatus = document.getElementById('cacheStatus');
         const cacheDot = document.getElementById('cacheDot');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const resultsInfo = document.getElementById('resultsInfo');
+        const filterBtns = document.querySelectorAll('.filter-btn');
 
         let isRefreshing = false;
         let autoRefreshInterval = null;
+        let currentFiles = [];
+        let currentCommits = [];
+        let currentFilter = 'all';
+        let currentSearch = '';
 
         // File extension icons mapping
         const FILE_ICONS = {
@@ -321,6 +553,30 @@
             'ttf': '🔤', 'otf': '🔤', 'woff': '🔤', 'woff2': '🔤',
             'iso': '💿', 'img': '💿'
         };
+
+        // File type detection
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            
+            const codeExtensions = ['js', 'ts', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'clj', 'lisp', 'sql', 'sh', 'bash', 'zsh', 'fish'];
+            const binaryExtensions = ['bin', 'dat', 'db', 'sqlite', 'mdb', 'accdb', 'dll', 'so', 'dylib', 'obj', 'o'];
+            const executableExtensions = ['exe', 'msi', 'dmg', 'pkg', 'deb', 'rpm', 'appimage', 'jar', 'war', 'class'];
+            const documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'md', 'tex', 'log', 'csv', 'xls', 'xlsx', 'ppt', 'pptx'];
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp', 'ico', 'tiff', 'psd', 'ai', 'eps'];
+            const audioExtensions = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'aiff', 'opus'];
+            const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv', 'flv', 'm4v', '3gp', 'ogv'];
+            const archiveExtensions = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'iso', 'img', 'cab', 'lzh'];
+            
+            if (codeExtensions.includes(ext)) return 'code';
+            if (binaryExtensions.includes(ext)) return 'binary';
+            if (executableExtensions.includes(ext)) return 'executable';
+            if (documentExtensions.includes(ext)) return 'document';
+            if (imageExtensions.includes(ext)) return 'image';
+            if (audioExtensions.includes(ext)) return 'audio';
+            if (videoExtensions.includes(ext)) return 'video';
+            if (archiveExtensions.includes(ext)) return 'archive';
+            return 'unknown';
+        }
 
         // Save to cache
         function saveToCache(data) {
@@ -345,7 +601,6 @@
                 const age = Date.now() - cacheData.timestamp;
                 
                 if (age > CACHE_DURATION) {
-                    // Cache expired
                     localStorage.removeItem(CACHE_KEY);
                     return null;
                 }
@@ -404,13 +659,55 @@
             return FILE_ICONS[ext] || '📎';
         }
 
+        // Get file type label
+        function getTypeLabel(type) {
+            const labels = {
+                'code': 'Code',
+                'binary': 'Binary',
+                'executable': 'Executable',
+                'document': 'Document',
+                'image': 'Image',
+                'audio': 'Audio',
+                'video': 'Video',
+                'archive': 'Archive',
+                'unknown': 'Unknown'
+            };
+            return labels[type] || 'Unknown';
+        }
+
         // Encode filename for URL
         function encodeFilename(filename) {
             return encodeURIComponent(filename);
         }
 
-        // Render file list
+        // Filter and search files
+        function filterFiles(files, searchTerm, filterType) {
+            let filtered = files.filter(item => item.type === 'file');
+            
+            // Apply search
+            if (searchTerm.trim()) {
+                const term = searchTerm.toLowerCase().trim();
+                filtered = filtered.filter(file => 
+                    file.name.toLowerCase().includes(term)
+                );
+            }
+            
+            // Apply filter
+            if (filterType !== 'all') {
+                filtered = filtered.filter(file => {
+                    const type = getFileType(file.name);
+                    return type === filterType;
+                });
+            }
+            
+            return filtered;
+        }
+
+        // Render file list with search and filter
         function renderFileList(files, commits) {
+            currentFiles = files;
+            currentCommits = commits;
+            
             // Create a map of filename to last commit date
             const fileDateMap = new Map();
             if (commits && Array.isArray(commits)) {
@@ -429,28 +726,40 @@
                 });
             }
 
-            // Filter only files (not directories)
-            const fileItems = files
-                .filter(item => item.type === 'file')
-                .slice(0, 10);
+            // Filter files
+            const filteredFiles = filterFiles(files, currentSearch, currentFilter);
+            const totalFiles = files.filter(item => item.type === 'file').length;
+            
+            // Update results info
+            if (filteredFiles.length === 0) {
+                resultsInfo.textContent = `No files found matching "${currentSearch || 'all files'}"`;
+            } else if (currentSearch.trim() || currentFilter !== 'all') {
+                const filterLabel = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
+                resultsInfo.textContent = `Showing ${filteredFiles.length} of ${totalFiles} files (${filterLabel}${currentSearch.trim() ? `, search: "${currentSearch.trim()}"` : ''})`;
+            } else {
+                resultsInfo.textContent = `Showing ${totalFiles} files`;
+            }
 
-            if (fileItems.length === 0) {
+            if (filteredFiles.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <p>✨ No files found in the <code>/files/</code> directory.</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.25rem;">Add some files to get started!</p>
+                    <div class="no-results">
+                        <span class="emoji">🔍</span>
+                        <p>No files found matching your criteria</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search or filter</p>
                     </div>
                 `;
                 return;
             }
 
             let html = `<ul class="file-list">`;
-            fileItems.forEach(file => {
+            filteredFiles.slice(0, 50).forEach(file => {
                 const icon = getFileIcon(file.name);
                 const size = formatSize(file.size);
                 const date = fileDateMap.get(file.name) || file.sha;
                 const dateStr = formatDate(date);
                 const encodedName = encodeFilename(file.name);
+                const fileType = getFileType(file.name);
+                const typeLabel = getTypeLabel(fileType);
                 
                 html += `
                     <li>
@@ -462,6 +771,7 @@
                                rel="noopener noreferrer">
                                 ${file.name}
                             </a>
+                            <span class="file-tag ${fileType}">${typeLabel}</span>
                             <span class="file-date">📅 ${dateStr}</span>
                         </div>
                         <span class="file-size">${size}</span>
@@ -470,14 +780,20 @@
             });
             html += `</ul>`;
 
-            const totalFiles = files.filter(item => item.type === 'file').length;
-            if (totalFiles > 10) {
+            if (filteredFiles.length > 50) {
                 html += `<p style="text-align: center; color: #a0aec0; margin-top: 1rem; font-size: 0.9rem;">
-                    Showing 10 of ${totalFiles} files
+                    Showing 50 of ${filteredFiles.length} matching files
                 </p>`;
             }
 
             container.innerHTML = html;
+        }
+
+        // Apply search and filter
+        function applySearchAndFilter() {
+            if (currentFiles.length > 0) {
+                renderFileList(currentFiles, currentCommits);
+            }
         }
 
         // Fetch files from GitHub
@@ -507,20 +823,17 @@
             updateCacheStatus('stale');
 
             try {
-                // Fetch files and commits in parallel
                 const [filesResponse, commitsResponse] = await Promise.all([
                     fetch(API_URL),
                     fetch(COMMITS_API)
                 ]);
 
-                // Check for rate limiting
                 if (filesResponse.status === 403) {
                     const remaining = filesResponse.headers.get('X-RateLimit-Remaining');
                     if (remaining === '0') {
                         const resetTime = parseInt(filesResponse.headers.get('X-RateLimit-Reset')) * 1000;
                         const resetDate = new Date(resetTime);
                         
-                        // Try to use cache
                         const cachedData = loadFromCache();
                         if (cachedData) {
                             updateCacheStatus('rate-limited');
@@ -557,7 +870,6 @@
                             </div>
                         `;
                         updateCacheStatus('stale');
-                        // Clear old cache
                         localStorage.removeItem(CACHE_KEY);
                         isRefreshing = false;
                         refreshBtn.disabled = false;
@@ -575,19 +887,15 @@
                     commits = await commitsResponse.json();
                 }
 
-                // Clear old cache and save new data
                 localStorage.removeItem(CACHE_KEY);
                 const cacheData = { files, commits };
                 saveToCache(cacheData);
                 updateCacheStatus('valid');
-
-                // Render the files
                 renderFileList(files, commits);
 
             } catch (error) {
                 console.error('Error fetching files:', error);
                 
-                // Try to use stale cache if available
                 const cachedData = loadFromCache();
                 if (cachedData) {
                     updateCacheStatus('stale');
@@ -615,7 +923,35 @@
             }
         }
 
-        // Handle refresh button click
+        // Event Listeners
+
+        // Search input
+        searchInput.addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            clearSearchBtn.classList.toggle('visible', currentSearch.length > 0);
+            applySearchAndFilter();
+        });
+
+        // Clear search
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            currentSearch = '';
+            clearSearchBtn.classList.remove('visible');
+            applySearchAndFilter();
+            searchInput.focus();
+        });
+
+        // Filter buttons
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                applySearchAndFilter();
+            });
+        });
+
+        // Refresh button
         refreshBtn.addEventListener('click', () => {
             fetchFromGitHub(true);
         });
@@ -632,7 +968,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchFromGitHub(false);
             
-            // Auto-refresh when cache expires (if page is open)
             autoRefreshInterval = setInterval(() => {
                 const cached = localStorage.getItem(CACHE_KEY);
                 if (cached) {
@@ -640,17 +975,15 @@
                         const cacheData = JSON.parse(cached);
                         const age = Date.now() - cacheData.timestamp;
                         if (age > CACHE_DURATION) {
-                            // Cache expired - refresh in background
                             fetchFromGitHub(true);
                         } else {
-                            // Update status
                             updateCacheStatus('valid');
                         }
                     } catch (e) {
                         // Ignore
                     }
                 }
-            }, 60000); // Check every minute
+            }, 60000);
         });
     </script>
 </body>
