@@ -91,7 +91,7 @@ The page makes two GitHub API calls:
 - `GET /repos/dryfish09/SimpleDB/contents/files` - Lists files
 - `GET /repos/dryfish09/SimpleDB/commits?path=files` - Gets commit dates
 
-**Rate Limits**: 60 unauthenticated requests per hour. Caching helps stay within limits.
+**Rate Limits**: 5000 authenticated requests per hour. Caching helps stay within limits.
 
 ## 📝 Adding Files
 
