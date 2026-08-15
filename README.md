@@ -37,7 +37,6 @@ simpledb/
 ├── index.html
 ├── README.md
 ├── _config.yml
-├── .nojekyll
 └── files/
     ├── your-file.pdf
     ├── image.jpg
