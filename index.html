@@ -112,11 +112,8 @@
             animation: dots 1.5s steps(4, end) infinite;
         }
         @keyframes dots {
-            0% { content: ''; opacity: 0; }
-            25% { opacity: 0.3; }
-            50% { opacity: 0.6; }
-            75% { opacity: 0.9; }
-            100% { opacity: 1; }
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
         }
         .error {
             color: #e53e3e;
@@ -405,7 +402,6 @@
             font-style: italic;
         }
 
-        /* Pagination Styles */
         .pagination {
             display: flex;
             justify-content: center;
@@ -574,7 +570,6 @@
             </div>
         </div>
         
-        <!-- Pagination -->
         <div id="paginationContainer" class="pagination" style="display:none;"></div>
     </div>
 
@@ -641,6 +636,7 @@
         let useAuth = true;
         let currentPage = 1;
         let totalPages = 0;
+        let searchTimeout = null;
 
         const FILE_ICONS = {
             'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📃',
@@ -733,6 +729,22 @@
             updateCooldownUI();
         }
 
+        function clearCooldown() {
+            if (cooldownTimeout) {
+                clearTimeout(cooldownTimeout);
+                cooldownTimeout = null;
+            }
+            cooldownEndTime = 0;
+            refreshBtn.disabled = false;
+            cooldownTimer.style.display = 'none';
+            refreshText.textContent = 'Refresh';
+            refreshIcon.textContent = '🔄';
+            refreshIcon.className = '';
+            try {
+                sessionStorage.removeItem('simpledb_cooldown');
+            } catch (e) {}
+        }
+
         function updateCooldownUI() {
             const now = Date.now();
             const remaining = Math.max(0, cooldownEndTime - now);
@@ -749,16 +761,7 @@
                 if (cooldownTimeout) clearTimeout(cooldownTimeout);
                 cooldownTimeout = setTimeout(updateCooldownUI, 1000);
             } else {
-                refreshBtn.disabled = false;
-                cooldownTimer.style.display = 'none';
-                refreshText.textContent = 'Refresh';
-                refreshIcon.textContent = '🔄';
-                refreshIcon.className = '';
-                cooldownEndTime = 0;
-                cooldownTimeout = null;
-                try {
-                    sessionStorage.removeItem('simpledb_cooldown');
-                } catch (e) {}
+                clearCooldown();
             }
         }
 
@@ -855,11 +858,13 @@
         }
 
         function filterFiles(files, searchTerm, filterType) {
-            let filtered = files.filter(item => item.type === 'file');
+            if (!files || !Array.isArray(files)) return [];
+            
+            let filtered = files.filter(item => item && item.type === 'file');
             if (searchTerm.trim()) {
                 const term = searchTerm.toLowerCase().trim();
                 filtered = filtered.filter(file => 
-                    file.name.toLowerCase().includes(term)
+                    file.name && file.name.toLowerCase().includes(term)
                 );
             }
             if (filterType !== 'all') {
@@ -872,7 +877,7 @@
         }
 
         function renderPagination(totalFiles) {
-            const totalFiltered = totalFiles;
+            const totalFiltered = totalFiles || 0;
             totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
             
             if (totalPages <= 1 || totalFiltered === 0) {
@@ -884,10 +889,8 @@
             
             let html = '';
             
-            // Previous button
             html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>◀</button>`;
             
-            // Page numbers
             const maxVisiblePages = 7;
             let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
             let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -914,10 +917,8 @@
                 html += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
             }
             
-            // Next button
             html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>▶</button>`;
             
-            // Page input
             html += `
                 <div class="page-input-group">
                     <span style="font-size:0.8rem;color:#718096;">Go to</span>
@@ -930,13 +931,13 @@
             paginationContainer.innerHTML = html;
         }
 
-        // Global functions for pagination
         window.goToPage = function(page) {
             if (page < 1 || page > totalPages || page === currentPage) return;
+            if (totalPages === 0) return;
             currentPage = page;
             renderCurrentPage();
-            // Scroll to top of file list
-            document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const card = document.querySelector('.card');
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
         window.jumpToPage = function() {
@@ -944,16 +945,41 @@
             if (!input) return;
             let page = parseInt(input.value);
             if (isNaN(page) || page < 1) page = 1;
-            if (page > totalPages) page = totalPages;
-            goToPage(page);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+            if (page > 0 && page <= totalPages) {
+                goToPage(page);
+            } else if (totalPages === 0) {
+                // No pages available
+                input.value = 1;
+            }
         };
 
         function renderCurrentPage() {
-            if (currentFiles.length === 0) return;
+            if (!currentFiles || currentFiles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>📂 No files available</p>
+                    </div>
+                `;
+                paginationContainer.style.display = 'none';
+                return;
+            }
             
             const filteredFiles = filterFiles(currentFiles, currentSearch, currentFilter);
             const totalFiltered = filteredFiles.length;
             totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
+            
+            if (totalPages === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <span class="emoji">🔍</span>
+                        <p>No files found matching your criteria</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search or filter</p>
+                    </div>
+                `;
+                paginationContainer.style.display = 'none';
+                return;
+            }
             
             if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
             
@@ -985,7 +1011,7 @@
 
             const totalFiles = currentFiles.filter(item => item.type === 'file').length;
             
-            if (pageFiles.length === 0) {
+            if (!pageFiles || pageFiles.length === 0) {
                 container.innerHTML = `
                     <div class="no-results">
                         <span class="emoji">🔍</span>
@@ -996,7 +1022,6 @@
                 return;
             }
 
-            // Update results info
             if (currentSearch.trim() || currentFilter !== 'all') {
                 let filterLabel = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
                 if (currentFilter === 'binary') {
@@ -1044,9 +1069,16 @@
         }
 
         function applySearchAndFilter() {
-            if (currentFiles.length > 0) {
-                currentPage = 1;
+            if (currentFiles && currentFiles.length > 0) {
+                const filteredFiles = filterFiles(currentFiles, currentSearch, currentFilter);
+                const totalFiltered = filteredFiles.length;
+                totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
+                currentPage = Math.min(currentPage, totalPages || 1);
+                if (currentPage < 1) currentPage = 1;
                 renderCurrentPage();
+                // Scroll to top of file list
+                const card = document.querySelector('.card');
+                if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
@@ -1121,6 +1153,7 @@
                                     <br><small>No cached data available.</small>
                                 </div>
                             `;
+                            paginationContainer.style.display = 'none';
                         }
                         isRefreshing = false;
                         refreshBtn.disabled = false;
@@ -1195,18 +1228,27 @@
                 }
             } finally {
                 isRefreshing = false;
-                refreshBtn.disabled = false;
+                if (!refreshBtn.disabled) {
+                    refreshBtn.disabled = false;
+                }
                 refreshIcon.textContent = '🔄';
                 refreshIcon.className = '';
                 refreshText.textContent = 'Refresh';
+                if (cooldownTimeout) {
+                    clearTimeout(cooldownTimeout);
+                    cooldownTimeout = null;
+                }
             }
         }
 
         // Event Listeners
         searchInput.addEventListener('input', (e) => {
-            currentSearch = e.target.value;
-            clearSearchBtn.classList.toggle('visible', currentSearch.length > 0);
-            applySearchAndFilter();
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentSearch = e.target.value;
+                clearSearchBtn.classList.toggle('visible', currentSearch.length > 0);
+                applySearchAndFilter();
+            }, 300);
         });
 
         clearSearchBtn.addEventListener('click', () => {
@@ -1233,6 +1275,7 @@
         window.addEventListener('beforeunload', () => {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
             if (cooldownTimeout) clearTimeout(cooldownTimeout);
+            if (searchTimeout) clearTimeout(searchTimeout);
         });
 
         // Initial load
