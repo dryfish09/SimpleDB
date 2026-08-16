@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleDB - Lightweight File Archive</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+        .badge {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin: 1.5rem 0;
+        }
+        .card h2 {
+            color: #2b6cb0;
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .file-list {
+            list-style: none;
+        }
+        .file-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .file-list li:hover {
+            background: #f7fafc;
+            margin: 0 -0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            border-radius: 8px;
+        }
+        .file-list li:last-child {
+            border-bottom: none;
+        }
+        .file-link {
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .file-link:hover {
+            text-decoration: underline;
+        }
+        .file-size {
+            color: #718096;
+            font-size: 0.875rem;
+            background: #edf2f7;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        .empty-state {
+            color: #a0aec0;
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .usage {
+            background: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            color: #718096;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        .loading {
+            text-align: center;
+            padding: 1.5rem 0;
+            color: #718096;
+        }
+        .loading-dots {
+            display: inline-block;
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        .error {
+            color: #e53e3e;
+            background: #fff5f5;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .warning {
+            background: #fefcbf;
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: #744210;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+        .success {
+            background: #c6f6d5;
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: #22543d;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+        .file-icon {
+            margin-right: 0.5rem;
+        }
+        .file-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        .file-date {
+            color: #a0aec0;
+            font-size: 0.8rem;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .refresh-btn {
+            background: #2b6cb0;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            height: 40px;
+            position: relative;
+            min-width: 120px;
+            justify-content: center;
+        }
+        .refresh-btn:hover:not(:disabled) {
+            background: #1a4f8b;
+            transform: scale(1.02);
+        }
+        .refresh-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .refresh-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .refresh-btn .cooldown-timer {
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.1rem 0.5rem;
+            border-radius: 12px;
+            margin-left: 0.25rem;
+        }
+        .cache-info {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .cache-info .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+        .cache-info .dot.stale {
+            background: #ecc94b;
+        }
+        .cache-info .dot.error {
+            background: #fc8181;
+        }
+        .cache-info .dot.disabled {
+            background: #a0aec0;
+        }
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .rate-limit {
+            background: #fefcbf;
+            border-left: 4px solid #d69e2e;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        .storage-warning {
+            background: #fed7d0;
+            border-left: 4px solid #e53e3e;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #742a2a;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0 0.75rem;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus-within {
+            border-color: #2b6cb0;
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .search-box .search-icon {
+            color: #a0aec0;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+        .search-box input {
+            border: none;
+            padding: 0.625rem 0;
+            font-size: 0.95rem;
+            width: 100%;
+            outline: none;
+            background: transparent;
+        }
+        .search-box input::placeholder {
+            color: #a0aec0;
+        }
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .filter-btn {
+            padding: 0.4rem 0.9rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #4a5568;
+        }
+        .filter-btn:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        .filter-btn.active {
+            background: #2b6cb0;
+            color: white;
+            border-color: #2b6cb0;
+        }
+        .filter-btn.active:hover {
+            background: #1a4f8b;
+            border-color: #1a4f8b;
+        }
+        .filter-btn .count {
+            background: rgba(255,255,255,0.2);
+            padding: 0.1rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 0.25rem;
+        }
+        .filter-btn.active .count {
+            background: rgba(255,255,255,0.3);
+        }
+        .results-info {
+            font-size: 0.875rem;
+            color: #718096;
+            padding: 0.5rem 0;
+        }
+        .clear-search-btn {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            font-size: 1.1rem;
+            display: none;
+        }
+        .clear-search-btn:hover {
+            color: #718096;
+        }
+        .clear-search-btn.visible {
+            display: block;
+        }
+
+        .file-tag {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .file-tag.code {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+        .file-tag.binary {
+            background: #fefcbf;
+            color: #744210;
+        }
+        .file-tag.executable {
+            background: #feb2b2;
+            color: #742a2a;
+        }
+        .file-tag.document {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .file-tag.image {
+            background: #e9d8fd;
+            color: #44337a;
+        }
+        .file-tag.audio {
+            background: #fed7d0;
+            color: #742a2a;
+        }
+        .file-tag.video {
+            background: #fbd38d;
+            color: #744210;
+        }
+        .file-tag.archive {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .file-tag.unknown {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem 0;
+            color: #a0aec0;
+        }
+        .no-results .emoji {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .filter-hint {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 0.4rem 0.9rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #4a5568;
+            min-width: 40px;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: #edf2f7;
+            border-color: #2b6cb0;
+        }
+        .pagination button.active {
+            background: #2b6cb0;
+            color: white;
+            border-color: #2b6cb0;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination .page-info {
+            padding: 0.4rem 1rem;
+            color: #718096;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .pagination .page-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .pagination .page-input-group input {
+            width: 60px;
+            padding: 0.3rem 0.4rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .pagination .page-input-group input:focus {
+            border-color: #2b6cb0;
+        }
+        .pagination .page-input-group button {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.8rem;
+        }
+        .pagination .ellipsis {
+            color: #a0aec0;
+            padding: 0 0.25rem;
+        }
+
+        .pat-section {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        .pat-input-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .pat-input-group input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.625rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        .pat-input-group input:focus {
+            border-color: #2b6cb0;
+        }
+        .pat-input-group input::placeholder {
+            color: #a0aec0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .pat-input-group button {
+            padding: 0.625rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-save-pat {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-save-pat:hover {
+            background: #38a169;
+        }
+        .btn-remove-pat {
+            background: #fc8181;
+            color: white;
+        }
+        .btn-remove-pat:hover {
+            background: #e53e3e;
+        }
+        .pat-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-size: 0.875rem;
+            padding: 0.5rem 0;
+        }
+        .pat-status .status-badge {
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .pat-status .status-badge.active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .pat-status .status-badge.inactive {
+            background: #fed7d0;
+            color: #742a2a;
+        }
+        .pat-status .status-badge.disabled {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .rate-limit-info {
+            font-size: 0.8rem;
+            color: #718096;
+            padding: 0.25rem 0;
+        }
+        .rate-limit-info .highlight {
+            font-weight: 600;
+            color: #2b6cb0;
+        }
+
+        .token-hint {
+            background: #ebf8ff;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #2a4365;
+            margin-top: 0.5rem;
+        }
+        .token-hint a {
+            color: #2b6cb0;
+            text-decoration: underline;
+        }
+        .token-hint code {
+            background: rgba(0,0,0,0.05);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .memory-cache-indicator {
+            font-size: 0.75rem;
+            color: #718096;
+            padding: 0.25rem 0;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box {
+                min-width: unset;
+            }
+            .filter-group {
+                justify-content: center;
+            }
+            .header-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .refresh-btn {
+                justify-content: center;
+            }
+            .file-list li {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .file-size {
+                align-self: flex-start;
+            }
+            .file-meta {
+                width: 100%;
+            }
+            .file-tag {
+                font-size: 0.65rem;
+            }
+            .pagination {
+                gap: 0.25rem;
+            }
+            .pagination button {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.75rem;
+                min-width: 32px;
+            }
+            .pat-input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .pat-input-group input {
+                min-width: unset;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>📦 SimpleDB</h1>
+    <span class="badge">⚡ Lightweight Archive</span>
+    
+    <div class="card">
+        <h2>📋 About</h2>
+        <p><strong>SimpleDB</strong> is a minimal file archive system. Files stored here are available for direct download via permanent URLs.</p>
+        <p style="margin-top: 0.5rem;">📌 <strong>Files are fetched live from the GitHub repository.</strong></p>
+    </div>
+
+    <div id="storageWarning" class="storage-warning" style="display:none;">
+        ⚠️ Your browser doesn't support local storage. Token and cache will only work for this session.
+    </div>
+
+    <div class="card">
+        <h2>🔑 GitHub Token Management</h2>
+        <p style="font-size: 0.9rem; color: #718096; margin-bottom: 1rem;">
+            Add a GitHub Personal Access Token to increase API rate limits from 60 to 5,000 requests per hour.
+            Tokens are stored locally in your browser.
+        </p>
+        
+        <div class="pat-section">
+            <div class="pat-input-group">
+                <input type="password" id="patInput" placeholder="Enter your GitHub PAT (ghp_...)" autocomplete="off">
+                <button class="btn-save-pat" id="savePatBtn">💾 Save Token</button>
+                <button class="btn-remove-pat" id="removePatBtn" style="display:none;">🗑️ Remove</button>
+            </div>
+            
+            <div class="pat-status" id="patStatus">
+                <span>Status:</span>
+                <span class="status-badge inactive" id="patStatusBadge">No Token</span>
+                <span id="patStatusText" style="color: #718096;">Using unauthenticated (60 req/hr)</span>
+            </div>
+            
+            <div class="rate-limit-info" id="rateLimitInfo">
+                💡 Current rate limit: <span class="highlight" id="rateLimitDisplay">60</span> requests per hour
+                <span id="rateLimitRemaining" style="margin-left: 1rem;"></span>
+            </div>
+            
+            <div id="storageStatus" class="memory-cache-indicator"></div>
+            
+            <div class="token-hint">
+                🔑 <a href="https://github.com/settings/tokens" target="_blank">Generate a token</a> with <code>public_repo</code> scope (or no scopes for public repos).
+                Your token is stored only in your browser's local storage.
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="header-actions">
+            <h2>📁 Available Files</h2>
+            <div class="controls">
+                <span class="cache-info" id="cacheInfo" role="status" aria-live="polite">
+                    <span class="dot" id="cacheDot"></span>
+                    <span id="cacheStatus">Loading...</span>
+                </span>
+                <button class="refresh-btn" id="refreshBtn" aria-label="Refresh file list" title="Refresh file list">
+                    <span id="refreshIcon">🔄</span> 
+                    <span id="refreshText">Refresh</span>
+                    <span class="cooldown-timer" id="cooldownTimer" style="display:none;"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search files by name..." aria-label="Search files">
+                <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">✕</button>
+            </div>
+            <div class="filter-group" role="group" aria-label="File type filters">
+                <label>📂 Filter:</label>
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="code">💻 Code</button>
+                <button class="filter-btn" data-filter="binary">🔧 Binary</button>
+                <button class="filter-btn" data-filter="executable">⚡ Executable</button>
+                <button class="filter-btn" data-filter="document">📄 Document</button>
+                <button class="filter-btn" data-filter="image">🖼️ Image</button>
+                <button class="filter-btn" data-filter="audio">🎵 Audio</button>
+                <button class="filter-btn" data-filter="video">🎬 Video</button>
+                <button class="filter-btn" data-filter="archive">📦 Archive</button>
+            </div>
+            <div class="filter-hint">💡 "Binary" includes executables, "Executable" shows only runnable files</div>
+        </div>
+
+        <div id="resultsInfo" class="results-info">Showing all files</div>
+        <div id="file-list-container" role="region" aria-live="polite">
+            <div class="loading">
+                Loading files<span class="loading-dots">...</span>
+            </div>
+        </div>
+        
+        <div id="paginationContainer" class="pagination" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+        <h2>🔗 Usage</h2>
+        <p>Files are accessible via:</p>
+        <div class="usage">
+            https://dryfish09.github.io/SimpleDB/files/<strong>filename.ext</strong>
+        </div>
+        <p style="margin-top: 1rem; font-size: 0.95rem;">Example: <code>https://dryfish09.github.io/SimpleDB/files/sample.pdf</code></p>
+    </div>
+
+    <div class="card">
+        <h2>📝 How to Add Files</h2>
+        <ol style="padding-left: 1.5rem; margin-top: 0.5rem;">
+            <li>Place your file in the <code>/files/</code> directory</li>
+            <li>Commit and push to GitHub</li>
+            <li>File becomes available at the URL above</li>
+            <li>Refresh this page to see it in the list</li>
+        </ol>
+    </div>
+
+    <footer>
+        <p>🚀 <a href="https://github.com/dryfish09/SimpleDB" style="color: #2b6cb0; text-decoration: none;">View on GitHub</a> &middot; SimpleDB &middot; Open source</p>
+    </footer>
+
+    <script>
+        const USERNAME = 'dryfish09';
+        const REPO = 'SimpleDB';
+        const FILES_PATH = 'files';
+        const CACHE_KEY = 'simpledb_cache';
+        const PAT_STORAGE_KEY = 'simpledb_pat';
+        const COOLDOWN_KEY = 'simpledb_cooldown';
+        const CACHE_DURATION = 30 * 60 * 1000;
+        const REFRESH_COOLDOWN = 50;
+        const FILES_PER_PAGE = 30;
+        const MAX_PAGES = 999;
+
+        const API_URL = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILES_PATH}`;
+        const COMMITS_API = `https://api.github.com/repos/${USERNAME}/${REPO}/commits?path=${FILES_PATH}&per_page=100`;
+
+        const container = document.getElementById('file-list-container');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const refreshIcon = document.getElementById('refreshIcon');
+        const refreshText = document.getElementById('refreshText');
+        const cooldownTimer = document.getElementById('cooldownTimer');
+        const cacheStatus = document.getElementById('cacheStatus');
+        const cacheDot = document.getElementById('cacheDot');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const resultsInfo = document.getElementById('resultsInfo');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const paginationContainer = document.getElementById('paginationContainer');
+        const patInput = document.getElementById('patInput');
+        const savePatBtn = document.getElementById('savePatBtn');
+        const removePatBtn = document.getElementById('removePatBtn');
+        const patStatusBadge = document.getElementById('patStatusBadge');
+        const patStatusText = document.getElementById('patStatusText');
+        const rateLimitDisplay = document.getElementById('rateLimitDisplay');
+        const rateLimitRemaining = document.getElementById('rateLimitRemaining');
+        const storageWarning = document.getElementById('storageWarning');
+        const storageStatus = document.getElementById('storageStatus');
+
+        let isRefreshing = false;
+        let autoRefreshInterval = null;
+        let currentFiles = [];
+        let currentCommits = [];
+        let currentFilter = 'all';
+        let currentSearch = '';
+        let cooldownTimeout = null;
+        let cooldownEndTime = 0;
+        let useAuth = false;
+        let currentPage = 1;
+        let totalPages = 0;
+        let searchTimeout = null;
+        let githubToken = '';
+        let rateLimitRemainingCount = null;
+        let rateLimitResetTime = null;
+
+        // === STORAGE MANAGEMENT ===
+        let storageAvailable = false;
+        let storageType = 'none';
+        let memoryCache = {};
+
+        function checkStorage() {
+            try {
+                const testKey = '__test__';
+                localStorage.setItem(testKey, 'test');
+                localStorage.removeItem(testKey);
+                storageAvailable = true;
+                storageType = 'localStorage';
+                return true;
+            } catch (e) {
+                try {
+                    const testKey = '__test__';
+                    sessionStorage.setItem(testKey, 'test');
+                    sessionStorage.removeItem(testKey);
+                    storageAvailable = true;
+                    storageType = 'sessionStorage';
+                    return true;
+                } catch (e2) {
+                    storageAvailable = false;
+                    storageType = 'none';
+                    return false;
+                }
+            }
+        }
+
+        function getStorageItem(key) {
+            if (storageAvailable) {
+                try {
+                    if (storageType === 'localStorage') {
+                        return localStorage.getItem(key);
+                    } else if (storageType === 'sessionStorage') {
+                        return sessionStorage.getItem(key);
+                    }
+                } catch (e) {
+                    return memoryCache[key] || null;
+                }
+            }
+            return memoryCache[key] || null;
+        }
+
+        function setStorageItem(key, value) {
+            if (storageAvailable) {
+                try {
+                    if (storageType === 'localStorage') {
+                        localStorage.setItem(key, value);
+                    } else if (storageType === 'sessionStorage') {
+                        sessionStorage.setItem(key, value);
+                    }
+                } catch (e) {
+                    memoryCache[key] = value;
+                }
+            } else {
+                memoryCache[key] = value;
+            }
+        }
+
+        function removeStorageItem(key) {
+            if (storageAvailable) {
+                try {
+                    if (storageType === 'localStorage') {
+                        localStorage.removeItem(key);
+                    } else if (storageType === 'sessionStorage') {
+                        sessionStorage.removeItem(key);
+                    }
+                } catch (e) {
+                    delete memoryCache[key];
+                }
+            } else {
+                delete memoryCache[key];
+            }
+        }
+
+        function updateStorageUI() {
+            if (storageAvailable) {
+                storageWarning.style.display = 'none';
+                storageStatus.textContent = `💾 Using ${storageType} for persistence`;
+                storageStatus.style.color = '#48bb78';
+            } else {
+                storageWarning.style.display = 'block';
+                storageStatus.textContent = '⚠️ Using memory cache (no persistence across sessions)';
+                storageStatus.style.color = '#ecc94b';
+                cacheDot.className = 'dot stale';
+            }
+        }
+
+        // === PAT MANAGEMENT ===
+        function loadPat() {
+            const saved = getStorageItem(PAT_STORAGE_KEY);
+            if (saved) {
+                githubToken = saved;
+                useAuth = true;
+                updatePatUI();
+                return true;
+            }
+            githubToken = '';
+            useAuth = false;
+            updatePatUI();
+            return false;
+        }
+
+        function savePat(token) {
+            setStorageItem(PAT_STORAGE_KEY, token);
+            githubToken = token;
+            useAuth = true;
+            updatePatUI();
+            return true;
+        }
+
+        function removePat() {
+            removeStorageItem(PAT_STORAGE_KEY);
+            githubToken = '';
+            useAuth = false;
+            updatePatUI();
+            return true;
+        }
+
+        function updatePatUI() {
+            if (useAuth && githubToken) {
+                patStatusBadge.className = 'status-badge active';
+                patStatusBadge.textContent = 'Active';
+                patStatusText.textContent = 'Using token (5,000 req/hr)';
+                rateLimitDisplay.textContent = '5,000';
+                removePatBtn.style.display = 'inline-block';
+                patInput.value = githubToken;
+                patInput.type = 'password';
+            } else {
+                patStatusBadge.className = 'status-badge inactive';
+                patStatusBadge.textContent = 'No Token';
+                patStatusText.textContent = 'Using unauthenticated (60 req/hr)';
+                rateLimitDisplay.textContent = '60';
+                removePatBtn.style.display = 'none';
+                patInput.value = '';
+                patInput.type = 'password';
+            }
+        }
+
+        function validatePat(token) {
+            return token && token.startsWith('ghp_') && token.length > 10;
+        }
+
+        // === RATE LIMIT ===
+        function updateRateLimitRemaining(headers) {
+            const remaining = headers.get('X-RateLimit-Remaining');
+            const reset = headers.get('X-RateLimit-Reset');
+            
+            if (remaining) {
+                rateLimitRemainingCount = parseInt(remaining);
+                if (useAuth) {
+                    rateLimitRemaining.textContent = `🔢 ${remaining} remaining`;
+                } else {
+                    rateLimitRemaining.textContent = `🔢 ${remaining} remaining (60 total)`;
+                }
+            }
+            
+            if (reset) {
+                rateLimitResetTime = parseInt(reset) * 1000;
+                const resetDate = new Date(rateLimitResetTime);
+                rateLimitRemaining.textContent += ` | Reset: ${resetDate.toLocaleTimeString()}`;
+            }
+        }
+
+        // === COOLDOWN - FIXED ===
+        function getCooldownEndTime() {
+            const saved = getStorageItem(COOLDOWN_KEY);
+            if (saved) {
+                const time = parseInt(saved);
+                if (!isNaN(time)) {
+                    return time;
+                }
+            }
+            return 0;
+        }
+
+        function setCooldownEndTime(endTime) {
+            setStorageItem(COOLDOWN_KEY, endTime.toString());
+        }
+
+        function removeCooldown() {
+            removeStorageItem(COOLDOWN_KEY);
+        }
+
+        function startCooldown() {
+            cooldownEndTime = Date.now() + (REFRESH_COOLDOWN * 1000);
+            setCooldownEndTime(cooldownEndTime);
+            updateCooldownUI();
+        }
+
+        function clearCooldown() {
+            if (cooldownTimeout) {
+                clearInterval(cooldownTimeout);
+                cooldownTimeout = null;
+            }
+            cooldownEndTime = 0;
+            removeCooldown();
+            refreshBtn.disabled = false;
+            cooldownTimer.style.display = 'none';
+            refreshText.textContent = 'Refresh';
+            refreshIcon.textContent = '🔄';
+            refreshIcon.className = '';
+        }
+
+        function updateCooldownUI() {
+            const now = Date.now();
+            const remaining = Math.max(0, cooldownEndTime - now);
+            
+            if (remaining > 0) {
+                const seconds = Math.ceil(remaining / 1000);
+                refreshBtn.disabled = true;
+                cooldownTimer.style.display = 'inline';
+                cooldownTimer.textContent = `${seconds}s`;
+                refreshText.textContent = 'Wait';
+                refreshIcon.textContent = '⏳';
+                refreshIcon.className = '';
+                
+                if (cooldownTimeout) clearInterval(cooldownTimeout);
+                cooldownTimeout = setInterval(() => {
+                    const remainingNow = Math.max(0, cooldownEndTime - Date.now());
+                    if (remainingNow > 0) {
+                        const secs = Math.ceil(remainingNow / 1000);
+                        cooldownTimer.textContent = `${secs}s`;
+                    } else {
+                        clearCooldown();
+                    }
+                }, 200);
+            } else {
+                clearCooldown();
+            }
+        }
+
+        function checkExistingCooldown() {
+            const savedEndTime = getCooldownEndTime();
+            if (savedEndTime && savedEndTime > Date.now()) {
+                cooldownEndTime = savedEndTime;
+                updateCooldownUI();
+                return true;
+            } else if (savedEndTime) {
+                removeCooldown();
+            }
+            return false;
+        }
+
+        // === CACHE ===
+        function getCacheData() {
+            const cached = getStorageItem(CACHE_KEY);
+            if (!cached) return null;
+            try {
+                const cacheData = JSON.parse(cached);
+                if (Date.now() - cacheData.timestamp > CACHE_DURATION) {
+                    removeStorageItem(CACHE_KEY);
+                    return null;
+                }
+                return cacheData.data;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveCacheData(data) {
+            try {
+                setStorageItem(CACHE_KEY, JSON.stringify({
+                    timestamp: Date.now(),
+                    data: data
+                }));
+            } catch (e) {
+                // Memory cache fallback
+            }
+        }
+
+        function clearCache() {
+            removeStorageItem(CACHE_KEY);
+        }
+
+        function updateCacheStatus(status) {
+            if (!storageAvailable) {
+                cacheDot.className = 'dot stale';
+                cacheStatus.textContent = 'Memory cache only';
+                return;
+            }
+            
+            if (status === 'valid') {
+                cacheDot.className = 'dot';
+                cacheStatus.textContent = 'Cache valid';
+            } else if (status === 'rate-limited') {
+                cacheDot.className = 'dot error';
+                cacheStatus.textContent = 'Rate limited - using cache';
+            } else {
+                cacheDot.className = 'dot stale';
+                cacheStatus.textContent = 'No cache';
+            }
+        }
+
+        // === FILE ICONS ===
+        const FILE_ICONS = {
+            'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📃',
+            'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+            'svg': '🖼️', 'webp': '🖼️', 'bmp': '🖼️', 'ico': '🖼️',
+            'zip': '📦', 'rar': '📦', '7z': '📦', 'tar': '📦',
+            'gz': '📦', 'bz2': '📦', 'xz': '📦',
+            'mp3': '🎵', 'wav': '🎵', 'flac': '🎵', 'aac': '🎵',
+            'mp4': '🎬', 'avi': '🎬', 'mov': '🎬', 'mkv': '🎬',
+            'webm': '🎬', 'wmv': '🎬',
+            'exe': '⚙️', 'dmg': '💿', 'apk': '📱', 'msi': '📦',
+            'json': '📊', 'xml': '📊', 'csv': '📊', 'yaml': '📊',
+            'yml': '📊', 'toml': '📊',
+            'html': '🌐', 'css': '🎨', 'js': '⚡', 'ts': '⚡',
+            'py': '🐍', 'java': '☕', 'cpp': '⚙️', 'c': '⚙️',
+            'h': '⚙️', 'hpp': '⚙️', 'sh': '💻', 'bash': '💻',
+            'jar': '📦', 'war': '📦', 'class': '☕', 'jmod': '📦',
+            'psd': '🎨', 'ai': '🎨', 'eps': '🎨',
+            'ttf': '🔤', 'otf': '🔤', 'woff': '🔤', 'woff2': '🔤',
+            'iso': '💿', 'img': '💿', 'dmg': '💿', 'pkg': '📦',
+            'deb': '📦', 'rpm': '📦', 'appimage': '📦', 'flatpak': '📦',
+            'bin': '🔧', 'dat': '🔧', 'db': '🔧', 'sqlite': '🔧',
+            'dll': '🔧', 'so': '🔧', 'dylib': '🔧', 'obj': '🔧'
+        };
+
+        // === FILE FUNCTIONS ===
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            
+            const codeExtensions = ['js', 'ts', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'clj', 'lisp', 'sql', 'sh', 'bash', 'zsh', 'fish', 'pl', 'pm', 'r', 'm', 'jl', 'ex', 'exs', 'erl', 'hrl', 'fs', 'fsx', 'cl', 'lsp'];
+            const executableExtensions = ['exe', 'msi', 'dmg', 'pkg', 'deb', 'rpm', 'appimage', 'flatpak', 'jar', 'war', 'class', 'jmod', 'apk', 'run', 'bin'];
+            const binaryExtensions = ['bin', 'dat', 'db', 'sqlite', 'mdb', 'accdb', 'dll', 'so', 'dylib', 'obj', 'o', 'lib', 'a', 'bc', 'wasm'];
+            const documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'md', 'tex', 'log', 'csv', 'xls', 'xlsx', 'ppt', 'pptx', 'odp', 'ods'];
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp', 'ico', 'tiff', 'tif', 'psd', 'ai', 'eps', 'raw', 'cr2', 'nef'];
+            const audioExtensions = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'aiff', 'opus', 'alac'];
+            const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv', 'flv', 'm4v', '3gp', 'ogv', 'mpeg', 'mpg'];
+            const archiveExtensions = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'iso', 'img', 'cab', 'lzh', 'lha', 'arj', 'zst'];
+            
+            if (executableExtensions.includes(ext)) return 'executable';
+            if (codeExtensions.includes(ext)) return 'code';
+            if (binaryExtensions.includes(ext)) return 'binary';
+            if (documentExtensions.includes(ext)) return 'document';
+            if (imageExtensions.includes(ext)) return 'image';
+            if (audioExtensions.includes(ext)) return 'audio';
+            if (videoExtensions.includes(ext)) return 'video';
+            if (archiveExtensions.includes(ext)) return 'archive';
+            return 'unknown';
+        }
+
+        function matchesFilter(fileType, filterType) {
+            if (filterType === 'all') return true;
+            if (filterType === 'binary') {
+                return fileType === 'binary' || fileType === 'executable';
+            }
+            return fileType === filterType;
+        }
+
+        function getHeaders() {
+            const headers = {
+                'Accept': 'application/vnd.github.v3+json'
+            };
+            if (useAuth && githubToken && githubToken.startsWith('ghp_')) {
+                headers['Authorization'] = `token ${githubToken}`;
+            }
+            return headers;
+        }
+
+        async function fetchWithAuth(url) {
+            const response = await fetch(url, {
+                headers: getHeaders()
+            });
+            
+            if (response.headers) {
+                updateRateLimitRemaining(response.headers);
+            }
+            
+            if (response.status === 401 && useAuth) {
+                console.log('⚠️ Token failed, falling back to unauthenticated');
+                useAuth = false;
+                removePat();
+                const retryResponse = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                if (retryResponse.headers) {
+                    updateRateLimitRemaining(retryResponse.headers);
+                }
+                return retryResponse;
+            }
+            return response;
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'Recently added';
+                return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+            } catch (e) {
+                return 'Recently added';
+            }
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            return FILE_ICONS[ext] || '📎';
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'code': 'Code', 'binary': 'Binary', 'executable': 'Executable',
+                'document': 'Document', 'image': 'Image', 'audio': 'Audio',
+                'video': 'Video', 'archive': 'Archive', 'unknown': 'Unknown'
+            };
+            return labels[type] || 'Unknown';
+        }
+
+        function encodeFilename(filename) {
+            return encodeURIComponent(filename);
+        }
+
+        function filterFiles(files, searchTerm, filterType) {
+            if (!files || !Array.isArray(files)) return [];
+            
+            let filtered = files.filter(item => item && item.type === 'file');
+            if (searchTerm.trim()) {
+                const term = searchTerm.toLowerCase().trim();
+                filtered = filtered.filter(file => 
+                    file.name && file.name.toLowerCase().includes(term)
+                );
+            }
+            if (filterType !== 'all') {
+                filtered = filtered.filter(file => {
+                    const type = getFileType(file.name);
+                    return matchesFilter(type, filterType);
+                });
+            }
+            return filtered;
+        }
+
+        function renderPagination(totalFiles) {
+            const totalFiltered = totalFiles || 0;
+            totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
+            
+            if (totalPages <= 1 || totalFiltered === 0) {
+                paginationContainer.style.display = 'none';
+                return;
+            }
+            
+            paginationContainer.style.display = 'flex';
+            
+            let html = '';
+            
+            html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>◀</button>`;
+            
+            const maxVisiblePages = 7;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            if (startPage > 1) {
+                html += `<button onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span class="ellipsis">…</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span class="ellipsis">…</span>`;
+                }
+                html += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>▶</button>`;
+            
+            html += `
+                <div class="page-input-group">
+                    <span style="font-size:0.8rem;color:#718096;">Go to</span>
+                    <input type="number" id="pageInput" min="1" max="${totalPages}" value="${currentPage}" 
+                           onkeydown="if(event.key === 'Enter') jumpToPage()">
+                    <button onclick="jumpToPage()">Go</button>
+                </div>
+            `;
+            
+            paginationContainer.innerHTML = html;
+        }
+
+        window.goToPage = function(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            if (totalPages === 0) return;
+            currentPage = page;
+            renderCurrentPage();
+            const card = document.querySelector('.card');
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        window.jumpToPage = function() {
+            const input = document.getElementById('pageInput');
+            if (!input) return;
+            let page = parseInt(input.value);
+            if (isNaN(page) || page < 1) page = 1;
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+            if (page > 0 && page <= totalPages) {
+                goToPage(page);
+            } else if (totalPages === 0) {
+                input.value = 1;
+            }
+        };
+
+        function renderCurrentPage() {
+            if (!currentFiles || currentFiles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>📂 No files available</p>
+                    </div>
+                `;
+                paginationContainer.style.display = 'none';
+                return;
+            }
+            
+            const filteredFiles = filterFiles(currentFiles, currentSearch, currentFilter);
+            const totalFiltered = filteredFiles.length;
+            totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
+            
+            if (totalPages === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <span class="emoji">🔍</span>
+                        <p>No files found matching your criteria</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search or filter</p>
+                    </div>
+                `;
+                paginationContainer.style.display = 'none';
+                return;
+            }
+            
+            if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+            
+            const startIndex = (currentPage - 1) * FILES_PER_PAGE;
+            const endIndex = Math.min(startIndex + FILES_PER_PAGE, totalFiltered);
+            const pageFiles = filteredFiles.slice(startIndex, endIndex);
+            
+            renderFileListPage(pageFiles, totalFiltered);
+            renderPagination(totalFiltered);
+        }
+
+        function renderFileListPage(pageFiles, totalFiltered) {
+            const fileDateMap = new Map();
+            if (currentCommits && Array.isArray(currentCommits)) {
+                currentCommits.forEach(commit => {
+                    if (commit.files && Array.isArray(commit.files)) {
+                        commit.files.forEach(file => {
+                            if (file.filename && file.filename.startsWith(`${FILES_PATH}/`)) {
+                                const filename = file.filename.replace(`${FILES_PATH}/`, '');
+                                const date = commit.commit.committer.date;
+                                if (!fileDateMap.has(filename) || new Date(date) > new Date(fileDateMap.get(filename))) {
+                                    fileDateMap.set(filename, date);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            const totalFiles = currentFiles.filter(item => item.type === 'file').length;
+            
+            if (!pageFiles || pageFiles.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <span class="emoji">🔍</span>
+                        <p>No files found matching your criteria</p>
+                        <p style="font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search or filter</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (currentSearch.trim() || currentFilter !== 'all') {
+                let filterLabel = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
+                if (currentFilter === 'binary') {
+                    filterLabel = 'Binary (includes executables)';
+                }
+                const start = (currentPage - 1) * FILES_PER_PAGE + 1;
+                const end = Math.min(start + pageFiles.length - 1, totalFiltered);
+                resultsInfo.textContent = `Showing ${start}-${end} of ${totalFiltered} files (${filterLabel}${currentSearch.trim() ? `, search: "${currentSearch.trim()}"` : ''})`;
+            } else {
+                const start = (currentPage - 1) * FILES_PER_PAGE + 1;
+                const end = Math.min(start + pageFiles.length - 1, totalFiles);
+                resultsInfo.textContent = `Showing ${start}-${end} of ${totalFiles} files`;
+            }
+
+            let html = `<ul class="file-list">`;
+            pageFiles.forEach(file => {
+                const icon = getFileIcon(file.name);
+                const size = formatSize(file.size);
+                const date = fileDateMap.get(file.name) || file.sha;
+                const dateStr = formatDate(date);
+                const encodedName = encodeFilename(file.name);
+                const fileType = getFileType(file.name);
+                const typeLabel = getTypeLabel(fileType);
+                
+                html += `
+                    <li>
+                        <div class="file-meta">
+                            <span class="file-icon" aria-hidden="true">${icon}</span>
+                            <a href="https://${USERNAME}.github.io/${REPO}/${FILES_PATH}/${encodedName}" 
+                               class="file-link" 
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                ${file.name}
+                            </a>
+                            <span class="file-tag ${fileType}">${typeLabel}</span>
+                            <span class="file-date">📅 ${dateStr}</span>
+                        </div>
+                        <span class="file-size">${size}</span>
+                    </li>
+                `;
+            });
+            html += `</ul>`;
+
+            container.innerHTML = html;
+        }
+
+        function applySearchAndFilter() {
+            if (currentFiles && currentFiles.length > 0) {
+                const filteredFiles = filterFiles(currentFiles, currentSearch, currentFilter);
+                const totalFiltered = filteredFiles.length;
+                totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
+                currentPage = Math.min(currentPage, totalPages || 1);
+                if (currentPage < 1) currentPage = 1;
+                renderCurrentPage();
+                const card = document.querySelector('.card');
+                if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // === MAIN FETCH FUNCTION ===
+        async function fetchFromGitHub(forceRefresh = false) {
+            // Check cooldown FIRST
+            if (cooldownEndTime > Date.now()) {
+                const remaining = Math.ceil((cooldownEndTime - Date.now()) / 1000);
+                container.innerHTML = `
+                    <div class="warning" role="alert">
+                        ⏳ Please wait ${remaining} seconds before refreshing again.
+                        <br><small>Cooldown period is ${REFRESH_COOLDOWN} seconds to prevent API rate limiting.</small>
+                    </div>
+                `;
+                return;
+            }
+
+            if (isRefreshing) return;
+            
+            isRefreshing = true;
+            refreshBtn.disabled = true;
+            refreshIcon.textContent = '⏳';
+            refreshIcon.className = 'spinning';
+            refreshText.textContent = 'Loading...';
+
+            if (!forceRefresh) {
+                const cachedData = getCacheData();
+                if (cachedData) {
+                    currentFiles = cachedData.files;
+                    currentCommits = cachedData.commits;
+                    currentPage = 1;
+                    renderCurrentPage();
+                    updateCacheStatus('valid');
+                    isRefreshing = false;
+                    refreshBtn.disabled = false;
+                    refreshIcon.textContent = '🔄';
+                    refreshIcon.className = '';
+                    refreshText.textContent = 'Refresh';
+                    return;
+                }
+            }
+
+            updateCacheStatus('stale');
+
+            try {
+                const [filesResponse, commitsResponse] = await Promise.all([
+                    fetchWithAuth(API_URL),
+                    fetchWithAuth(COMMITS_API)
+                ]);
+
+                if (filesResponse.headers) {
+                    updateRateLimitRemaining(filesResponse.headers);
+                }
+
+                if (filesResponse.status === 403) {
+                    const remaining = filesResponse.headers.get('X-RateLimit-Remaining');
+                    if (remaining === '0') {
+                        const resetTime = parseInt(filesResponse.headers.get('X-RateLimit-Reset')) * 1000;
+                        const resetDate = new Date(resetTime);
+                        
+                        const cachedData = getCacheData();
+                        if (cachedData) {
+                            updateCacheStatus('rate-limited');
+                            currentFiles = cachedData.files;
+                            currentCommits = cachedData.commits;
+                            currentPage = 1;
+                            renderCurrentPage();
+                            container.innerHTML += `
+                                <div class="rate-limit" role="alert">
+                                    ⚠️ GitHub API rate limit exceeded. Using cached data.
+                                    <br><small>Reset at ${resetDate.toLocaleTimeString()}</small>
+                                    ${!useAuth ? '<br><small>💡 Add a PAT for higher limits (5,000/hr)</small>' : ''}
+                                </div>
+                            `;
+                        } else {
+                            container.innerHTML = `
+                                <div class="error" role="alert">
+                                    ⚠️ GitHub API rate limit exceeded. Please try again after ${resetDate.toLocaleTimeString()}.
+                                    <br><small>${!useAuth ? '💡 Add a PAT above for higher limits (5,000/hr)' : 'Token rate limit reached'}</small>
+                                </div>
+                            `;
+                            paginationContainer.style.display = 'none';
+                        }
+                        isRefreshing = false;
+                        refreshBtn.disabled = false;
+                        refreshIcon.textContent = '🔄';
+                        refreshIcon.className = '';
+                        refreshText.textContent = 'Refresh';
+                        return;
+                    }
+                }
+
+                if (!filesResponse.ok) {
+                    if (filesResponse.status === 404) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <p>📂 The <code>/files/</code> directory doesn't exist yet.</p>
+                                <p style="font-size: 0.9rem; margin-top: 0.25rem;">Create it and add some files!</p>
+                            </div>
+                        `;
+                        paginationContainer.style.display = 'none';
+                        clearCache();
+                        isRefreshing = false;
+                        refreshBtn.disabled = false;
+                        refreshIcon.textContent = '🔄';
+                        refreshIcon.className = '';
+                        refreshText.textContent = 'Refresh';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${filesResponse.status}`);
+                }
+
+                const files = await filesResponse.json();
+                let commits = [];
+                if (commitsResponse.ok) {
+                    commits = await commitsResponse.json();
+                }
+
+                currentFiles = files;
+                currentCommits = commits;
+                currentPage = 1;
+                
+                clearCache();
+                saveCacheData({ files, commits });
+                updateCacheStatus('valid');
+                renderCurrentPage();
+                
+                // Start cooldown AFTER successful fetch
+                startCooldown();
+
+            } catch (error) {
+                console.error('Error fetching files:', error);
+                
+                const cachedData = getCacheData();
+                if (cachedData) {
+                    updateCacheStatus('stale');
+                    currentFiles = cachedData.files;
+                    currentCommits = cachedData.commits;
+                    currentPage = 1;
+                    renderCurrentPage();
+                    container.innerHTML += `
+                        <div class="warning" role="alert">
+                            ⚠️ Using cached data (refresh failed). Will retry on next refresh.
+                            <br><small>${error.message}</small>
+                            ${!useAuth ? '<br><small>💡 Try adding a PAT above for better reliability</small>' : ''}
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="error" role="alert">
+                            ❌ Failed to load files. Please try again later.
+                            <br><small style="color: #718096;">${error.message}</small>
+                            ${!useAuth ? '<br><small>💡 Add a PAT above to increase rate limits</small>' : ''}
+                        </div>
+                    `;
+                    paginationContainer.style.display = 'none';
+                    updateCacheStatus('stale');
+                }
+            } finally {
+                isRefreshing = false;
+                refreshBtn.disabled = false;
+                refreshIcon.textContent = '🔄';
+                refreshIcon.className = '';
+                refreshText.textContent = 'Refresh';
+            }
+        }
+
+        // === EVENT LISTENERS ===
+        savePatBtn.addEventListener('click', () => {
+            const token = patInput.value.trim();
+            if (validatePat(token)) {
+                savePat(token);
+                fetchFromGitHub(true);
+                const statusDiv = document.getElementById('patStatus');
+                const msg = document.createElement('div');
+                msg.className = 'success';
+                msg.textContent = '✅ Token saved successfully! Refreshing files...';
+                statusDiv.appendChild(msg);
+                setTimeout(() => {
+                    if (msg.parentNode) msg.remove();
+                }, 3000);
+            } else {
+                alert('Invalid token format. Token should start with "ghp_" and be at least 10 characters.');
+            }
+        });
+
+        removePatBtn.addEventListener('click', () => {
+            if (confirm('Remove saved token? You will revert to unauthenticated (60 req/hr).')) {
+                removePat();
+                fetchFromGitHub(true);
+            }
+        });
+
+        patInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                savePatBtn.click();
+            }
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentSearch = e.target.value;
+                clearSearchBtn.classList.toggle('visible', currentSearch.length > 0);
+                applySearchAndFilter();
+            }, 300);
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            currentSearch = '';
+            clearSearchBtn.classList.remove('visible');
+            applySearchAndFilter();
+            searchInput.focus();
+        });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                applySearchAndFilter();
+            });
+        });
+
+        refreshBtn.addEventListener('click', () => {
+            fetchFromGitHub(true);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            if (cooldownTimeout) clearInterval(cooldownTimeout);
+            if (searchTimeout) clearTimeout(searchTimeout);
+        });
+
+        // === INITIALIZATION ===
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check storage support
+            checkStorage();
+            updateStorageUI();
+            
+            // Load PAT from storage
+            loadPat();
+            
+            // Check for existing cooldown FIRST
+            const hasCooldown = checkExistingCooldown();
+            
+            if (!hasCooldown) {
+                const cachedData = getCacheData();
+                if (cachedData) {
+                    currentFiles = cachedData.files;
+                    currentCommits = cachedData.commits;
+                    currentPage = 1;
+                    renderCurrentPage();
+                    updateCacheStatus('valid');
+                } else {
+                    fetchFromGitHub(false);
+                }
+            } else {
+                // Cooldown is active, load from cache if available
+                const cachedData = getCacheData();
+                if (cachedData) {
+                    currentFiles = cachedData.files;
+                    currentCommits = cachedData.commits;
+                    currentPage = 1;
+                    renderCurrentPage();
+                    updateCacheStatus('valid');
+                }
+            }
+            
+            autoRefreshInterval = setInterval(() => {
+                const cached = getStorageItem(CACHE_KEY);
+                if (cached) {
+                    try {
+                        const cacheData = JSON.parse(cached);
+                        if (Date.now() - cacheData.timestamp > CACHE_DURATION) {
+                            if (cooldownEndTime <= Date.now()) {
+                                fetchFromGitHub(true);
+                            }
+                        } else {
+                            updateCacheStatus('valid');
+                        }
+                    } catch (e) {}
+                }
+            }, 60000);
+        });
+    </script>
+</body>
+</html>
