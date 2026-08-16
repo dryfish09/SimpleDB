@@ -4,155 +4,645 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SimpleDB - Lightweight File Archive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
+        /* Material Design 3 Color System */
+        :root {
+            --md-primary: #1a73e8;
+            --md-on-primary: #ffffff;
+            --md-primary-container: #d2e3fc;
+            --md-on-primary-container: #041e49;
+            --md-secondary: #0061a4;
+            --md-on-secondary: #ffffff;
+            --md-secondary-container: #cfe5ff;
+            --md-on-secondary-container: #001d3a;
+            --md-tertiary: #7a5600;
+            --md-on-tertiary: #ffffff;
+            --md-tertiary-container: #ffde9c;
+            --md-on-tertiary-container: #261800;
+            --md-error: #ba1a1a;
+            --md-on-error: #ffffff;
+            --md-error-container: #ffdad6;
+            --md-on-error-container: #410002;
+            --md-background: #fbfcfe;
+            --md-on-background: #191c1e;
+            --md-surface: #fbfcfe;
+            --md-on-surface: #191c1e;
+            --md-surface-variant: #dee3eb;
+            --md-on-surface-variant: #41474e;
+            --md-outline: #71787f;
+            --md-outline-variant: #c2c7cf;
+            --md-shadow: #000000;
+            --md-surface-tint: #1a73e8;
+            --md-scrim: #000000;
+            --md-inverse-surface: #2e3133;
+            --md-inverse-on-surface: #eff1f2;
+            --md-inverse-primary: #aac7ff;
+            
+            /* Elevation */
+            --md-elevation-0: none;
+            --md-elevation-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --md-elevation-2: 0 3px 6px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.12);
+            --md-elevation-3: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10);
+            --md-elevation-4: 0 15px 25px rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.05);
+            --md-elevation-5: 0 20px 40px rgba(0,0,0,0.15);
+            
+            /* Shape */
+            --md-shape-extra-small: 4px;
+            --md-shape-small: 8px;
+            --md-shape-medium: 12px;
+            --md-shape-large: 16px;
+            --md-shape-extra-large: 28px;
+            --md-shape-full: 9999px;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --md-primary: #aac7ff;
+            --md-on-primary: #002e6b;
+            --md-primary-container: #004497;
+            --md-on-primary-container: #d2e3fc;
+            --md-secondary: #9ccbff;
+            --md-on-secondary: #00325f;
+            --md-secondary-container: #00497b;
+            --md-on-secondary-container: #cfe5ff;
+            --md-tertiary: #eac24b;
+            --md-on-tertiary: #3f2e00;
+            --md-tertiary-container: #5c4000;
+            --md-on-tertiary-container: #ffde9c;
+            --md-error: #ffb4ab;
+            --md-on-error: #690005;
+            --md-error-container: #93000a;
+            --md-on-error-container: #ffdad6;
+            --md-background: #111315;
+            --md-on-background: #e1e3e5;
+            --md-surface: #111315;
+            --md-on-surface: #e1e3e5;
+            --md-surface-variant: #41474e;
+            --md-on-surface-variant: #c2c7cf;
+            --md-outline: #8b9199;
+            --md-outline-variant: #41474e;
+            --md-shadow: #000000;
+            --md-surface-tint: #aac7ff;
+            --md-scrim: #000000;
+            --md-inverse-surface: #e1e3e5;
+            --md-inverse-on-surface: #191c1e;
+            --md-inverse-primary: #1a73e8;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 1000px;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
-            background: #f5f7fa;
-            color: #2d3748;
+            padding: 1.5rem;
+            background: var(--md-background);
+            color: var(--md-on-background);
             line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+            -webkit-font-smoothing: antialiased;
         }
-        h1 {
+
+        /* Material Typography */
+        .md-headline-large {
             font-size: 2.5rem;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 0.5rem;
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: 1.2;
         }
-        .badge {
-            display: inline-block;
-            background: #48bb78;
-            color: white;
-            padding: 0.25rem 1rem;
-            border-radius: 20px;
+        .md-headline-medium {
+            font-size: 1.75rem;
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: 1.3;
+        }
+        .md-headline-small {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: 1.4;
+        }
+        .md-title-large {
+            font-size: 1.375rem;
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: 1.5;
+        }
+        .md-title-medium {
+            font-size: 1.125rem;
+            font-weight: 500;
+            letter-spacing: 0.15px;
+            line-height: 1.5;
+        }
+        .md-title-small {
             font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            line-height: 1.5;
         }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin: 1.5rem 0;
+        .md-body-large {
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 0.15px;
+            line-height: 1.5;
         }
-        .card h2 {
-            color: #2b6cb0;
-            font-size: 1.25rem;
-            margin-bottom: 0.75rem;
+        .md-body-medium {
+            font-size: 0.875rem;
+            font-weight: 400;
+            letter-spacing: 0.25px;
+            line-height: 1.5;
         }
-        .file-list {
-            list-style: none;
+        .md-body-small {
+            font-size: 0.75rem;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            line-height: 1.5;
         }
-        .file-list li {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #edf2f7;
+        .md-label-large {
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            line-height: 1.5;
+        }
+        .md-label-medium {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            line-height: 1.5;
+        }
+        .md-label-small {
+            font-size: 0.688rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            line-height: 1.5;
+        }
+
+        /* Material Card */
+        .md-card {
+            background: var(--md-surface);
+            border-radius: var(--md-shape-medium);
+            padding: 1.5rem;
+            box-shadow: var(--md-elevation-1);
+            transition: box-shadow 0.3s, background 0.3s;
+            margin: 1rem 0;
+        }
+        .md-card:hover {
+            box-shadow: var(--md-elevation-2);
+        }
+        .md-card.elevated {
+            box-shadow: var(--md-elevation-2);
+        }
+        .md-card.elevated:hover {
+            box-shadow: var(--md-elevation-3);
+        }
+        .md-card .md-card-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .md-card .md-card-header .icon {
+            color: var(--md-primary);
+        }
+        .md-card .md-card-title {
+            font-size: 1.125rem;
+            font-weight: 500;
+            letter-spacing: 0.15px;
+            color: var(--md-on-surface);
+        }
+        .md-card .md-card-subtitle {
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: var(--md-on-surface-variant);
+        }
+
+        /* Material Button */
+        .md-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.5rem;
+            border: none;
+            border-radius: var(--md-shape-full);
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            min-height: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .md-button::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: currentColor;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .md-button:hover::after {
+            opacity: 0.08;
+        }
+        .md-button:active::after {
+            opacity: 0.12;
+        }
+        .md-button.filled {
+            background: var(--md-primary);
+            color: var(--md-on-primary);
+            box-shadow: var(--md-elevation-1);
+        }
+        .md-button.filled:hover {
+            box-shadow: var(--md-elevation-2);
+        }
+        .md-button.filled:disabled {
+            opacity: 0.38;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .md-button.outlined {
+            background: transparent;
+            color: var(--md-primary);
+            border: 1px solid var(--md-outline);
+        }
+        .md-button.outlined:hover {
+            background: var(--md-primary-container);
+            border-color: var(--md-primary);
+        }
+        .md-button.text {
+            background: transparent;
+            color: var(--md-primary);
+        }
+        .md-button.text:hover {
+            background: var(--md-primary-container);
+        }
+        .md-button.elevated {
+            background: var(--md-surface);
+            color: var(--md-primary);
+            box-shadow: var(--md-elevation-1);
+        }
+        .md-button.elevated:hover {
+            box-shadow: var(--md-elevation-2);
+        }
+        .md-button .material-symbols-outlined {
+            font-size: 1.125rem;
+        }
+
+        /* Material Text Field */
+        .md-text-field {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: var(--md-surface-variant);
+            border-radius: var(--md-shape-extra-small);
+            padding: 0 1rem;
             transition: background 0.2s;
+            border: 1px solid transparent;
+            min-height: 56px;
         }
-        .file-list li:hover {
-            background: #f7fafc;
-            margin: 0 -0.5rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-            border-radius: 8px;
+        .md-text-field:focus-within {
+            background: var(--md-surface);
+            border-color: var(--md-primary);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
         }
-        .file-list li:last-child {
-            border-bottom: none;
+        .md-text-field .leading-icon {
+            color: var(--md-on-surface-variant);
+            margin-right: 0.75rem;
         }
-        .file-link {
-            color: #2b6cb0;
+        .md-text-field input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0.5rem 0;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            color: var(--md-on-surface);
+            outline: none;
+            min-height: 56px;
+        }
+        .md-text-field input::placeholder {
+            color: var(--md-on-surface-variant);
+            opacity: 0.6;
+        }
+        .md-text-field .trailing-icon {
+            color: var(--md-on-surface-variant);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        .md-text-field .trailing-icon:hover {
+            color: var(--md-on-surface);
+        }
+
+        /* Material Chip */
+        .md-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 1rem;
+            border-radius: var(--md-shape-full);
+            border: 1px solid var(--md-outline);
+            background: transparent;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            color: var(--md-on-surface-variant);
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 32px;
+        }
+        .md-chip:hover {
+            background: var(--md-surface-variant);
+        }
+        .md-chip.active {
+            background: var(--md-secondary-container);
+            color: var(--md-on-secondary-container);
+            border-color: var(--md-secondary);
+        }
+        .md-chip .material-symbols-outlined {
+            font-size: 1rem;
+        }
+        .md-chip .count {
+            background: rgba(0,0,0,0.08);
+            padding: 0.05rem 0.5rem;
+            border-radius: var(--md-shape-full);
+            font-size: 0.75rem;
+        }
+        .md-chip.active .count {
+            background: rgba(0,0,0,0.12);
+        }
+
+        /* Material Tag */
+        .md-tag {
+            display: inline-block;
+            padding: 0.125rem 0.625rem;
+            border-radius: var(--md-shape-extra-small);
+            font-size: 0.688rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .md-tag.code {
+            background: var(--md-primary-container);
+            color: var(--md-on-primary-container);
+        }
+        .md-tag.binary {
+            background: var(--md-secondary-container);
+            color: var(--md-on-secondary-container);
+        }
+        .md-tag.executable {
+            background: var(--md-error-container);
+            color: var(--md-on-error-container);
+        }
+        .md-tag.document {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+        [data-theme="dark"] .md-tag.document {
+            background: #1b5e20;
+            color: #c8e6c9;
+        }
+        .md-tag.image {
+            background: #e1bee7;
+            color: #4a148c;
+        }
+        [data-theme="dark"] .md-tag.image {
+            background: #4a148c;
+            color: #e1bee7;
+        }
+        .md-tag.audio {
+            background: #ffccbc;
+            color: #bf360c;
+        }
+        [data-theme="dark"] .md-tag.audio {
+            background: #bf360c;
+            color: #ffccbc;
+        }
+        .md-tag.video {
+            background: #ffe0b2;
+            color: #e65100;
+        }
+        [data-theme="dark"] .md-tag.video {
+            background: #e65100;
+            color: #ffe0b2;
+        }
+        .md-tag.archive {
+            background: var(--md-surface-variant);
+            color: var(--md-on-surface-variant);
+        }
+        .md-tag.unknown {
+            background: var(--md-surface-variant);
+            color: var(--md-on-surface-variant);
+        }
+
+        /* Material Divider */
+        .md-divider {
+            height: 1px;
+            background: var(--md-outline-variant);
+            margin: 0.5rem 0;
+        }
+
+        /* Material List Item */
+        .md-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0.5rem;
+            border-radius: var(--md-shape-small);
+            transition: background 0.2s;
+            cursor: default;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .md-list-item:hover {
+            background: var(--md-surface-variant);
+        }
+        .md-list-item .leading {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            flex-wrap: wrap;
+            min-width: 200px;
+        }
+        .md-list-item .leading .icon {
+            font-size: 1.25rem;
+        }
+        .md-list-item .leading .text {
+            color: var(--md-on-surface);
             text-decoration: none;
             font-weight: 500;
         }
-        .file-link:hover {
+        .md-list-item .leading .text:hover {
+            color: var(--md-primary);
             text-decoration: underline;
         }
-        .file-size {
-            color: #718096;
-            font-size: 0.875rem;
-            background: #edf2f7;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            white-space: nowrap;
-        }
-        .empty-state {
-            color: #a0aec0;
-            text-align: center;
-            padding: 2rem 0;
-        }
-        .usage {
-            background: #ebf8ff;
-            border-left: 4px solid #3182ce;
-            padding: 1rem 1.5rem;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-        }
-        footer {
-            margin-top: 3rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e2e8f0;
-            color: #718096;
-            font-size: 0.875rem;
-            text-align: center;
-        }
-        .loading {
-            text-align: center;
-            padding: 1.5rem 0;
-            color: #718096;
-        }
-        .loading-dots {
-            display: inline-block;
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-        @keyframes dots {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
-        }
-        .error {
-            color: #e53e3e;
-            background: #fff5f5;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .warning {
-            background: #fefcbf;
-            padding: 0.75rem;
-            border-radius: 8px;
-            color: #744210;
-            font-size: 0.875rem;
-            margin-top: 1rem;
-        }
-        .success {
-            background: #c6f6d5;
-            padding: 0.75rem;
-            border-radius: 8px;
-            color: #22543d;
-            font-size: 0.875rem;
-            margin-top: 1rem;
-        }
-        .file-icon {
-            margin-right: 0.5rem;
-        }
-        .file-meta {
+        .md-list-item .trailing {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
             flex-wrap: wrap;
-            flex: 1;
         }
-        .file-date {
-            color: #a0aec0;
-            font-size: 0.8rem;
+        .md-list-item .trailing .size {
+            color: var(--md-on-surface-variant);
+            font-size: 0.875rem;
+            background: var(--md-surface-variant);
+            padding: 0.125rem 0.75rem;
+            border-radius: var(--md-shape-full);
         }
-        .header-actions {
+        .md-list-item .trailing .date {
+            color: var(--md-on-surface-variant);
+            font-size: 0.75rem;
+        }
+
+        /* Material Badge */
+        .md-badge {
+            display: inline-block;
+            background: var(--md-primary);
+            color: var(--md-on-primary);
+            padding: 0.125rem 0.75rem;
+            border-radius: var(--md-shape-full);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Material Empty State */
+        .md-empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--md-on-surface-variant);
+        }
+        .md-empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: var(--md-outline);
+        }
+
+        /* Material Pagination */
+        .md-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .md-pagination button {
+            min-width: 40px;
+            height: 40px;
+            padding: 0 0.5rem;
+            border: none;
+            border-radius: var(--md-shape-full);
+            background: transparent;
+            color: var(--md-on-surface-variant);
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .md-pagination button:hover {
+            background: var(--md-surface-variant);
+        }
+        .md-pagination button.active {
+            background: var(--md-primary);
+            color: var(--md-on-primary);
+        }
+        .md-pagination button:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+        .md-pagination .ellipsis {
+            color: var(--md-on-surface-variant);
+            padding: 0 0.25rem;
+        }
+        .md-pagination .page-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-left: 0.5rem;
+        }
+        .md-pagination .page-input-group input {
+            width: 56px;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--md-outline);
+            border-radius: var(--md-shape-extra-small);
+            background: var(--md-surface);
+            color: var(--md-on-surface);
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.875rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .md-pagination .page-input-group input:focus {
+            border-color: var(--md-primary);
+        }
+        .md-pagination .page-input-group button {
+            min-width: 48px;
+            height: 40px;
+        }
+
+        /* Material Theme Toggle */
+        .md-theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.375rem 0.75rem 0.375rem 1rem;
+            border: 1px solid var(--md-outline);
+            border-radius: var(--md-shape-full);
+            background: transparent;
+            color: var(--md-on-surface-variant);
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .md-theme-toggle:hover {
+            background: var(--md-surface-variant);
+        }
+        .md-theme-toggle .material-symbols-outlined {
+            font-size: 1.25rem;
+        }
+
+        /* Material Tooltip */
+        .md-tooltip {
+            position: relative;
+        }
+        .md-tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.25rem 0.75rem;
+            background: var(--md-inverse-surface);
+            color: var(--md-inverse-on-surface);
+            border-radius: var(--md-shape-extra-small);
+            font-size: 0.75rem;
+            font-weight: 400;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .md-tooltip:hover::after {
+            opacity: 1;
+        }
+
+        /* Layout Components */
+        .md-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -160,623 +650,445 @@
             gap: 1rem;
             margin-bottom: 1rem;
         }
-        .controls {
+        .md-header .title-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .md-header .title-group .icon {
+            font-size: 2.5rem;
+            color: var(--md-primary);
+        }
+
+        .md-search-bar {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            background: var(--md-surface-variant);
+            padding: 0.75rem;
+            border-radius: var(--md-shape-medium);
+            margin-bottom: 1rem;
+        }
+        .md-search-bar .md-text-field {
+            flex: 1;
+            min-width: 200px;
+        }
+        .md-search-bar .chip-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .md-search-bar .chip-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--md-on-surface-variant);
+            margin-right: 0.25rem;
+        }
+
+        .md-stats {
             display: flex;
             align-items: center;
             gap: 1rem;
             flex-wrap: wrap;
-        }
-        .refresh-btn {
-            background: #2b6cb0;
-            color: white;
-            border: none;
-            padding: 0.5rem 1.25rem;
-            border-radius: 8px;
+            padding: 0.5rem 0;
+            color: var(--md-on-surface-variant);
             font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            height: 40px;
-            position: relative;
-            min-width: 120px;
-            justify-content: center;
         }
-        .refresh-btn:hover:not(:disabled) {
-            background: #1a4f8b;
-            transform: scale(1.02);
-        }
-        .refresh-btn:active:not(:disabled) {
-            transform: scale(0.98);
-        }
-        .refresh-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-        .refresh-btn .cooldown-timer {
-            font-size: 0.75rem;
-            background: rgba(255,255,255,0.2);
-            padding: 0.1rem 0.5rem;
-            border-radius: 12px;
-            margin-left: 0.25rem;
-        }
-        .cache-info {
-            font-size: 0.8rem;
-            color: #a0aec0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .cache-info .dot {
+        .md-stats .dot {
             display: inline-block;
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #48bb78;
+            margin-right: 0.25rem;
         }
-        .cache-info .dot.stale {
-            background: #ecc94b;
+        .md-stats .dot.valid {
+            background: #4caf50;
         }
-        .cache-info .dot.error {
-            background: #fc8181;
+        .md-stats .dot.stale {
+            background: #ff9800;
         }
-        .cache-info .dot.disabled {
-            background: #a0aec0;
+        .md-stats .dot.error {
+            background: #f44336;
         }
-        .spinning {
-            animation: spin 1s linear infinite;
+        .md-stats .dot.disabled {
+            background: var(--md-outline);
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .rate-limit {
-            background: #fefcbf;
-            border-left: 4px solid #d69e2e;
+
+        .md-token-section {
+            background: var(--md-surface-variant);
             padding: 1rem;
-            border-radius: 4px;
-            margin-top: 1rem;
-        }
-        .storage-warning {
-            background: #fed7d0;
-            border-left: 4px solid #e53e3e;
-            padding: 0.75rem 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            color: #742a2a;
-        }
-
-        .search-container {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            align-items: center;
-            background: #f7fafc;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-        }
-        .search-box {
-            flex: 1;
-            min-width: 200px;
-            display: flex;
-            align-items: center;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 0 0.75rem;
-            transition: border-color 0.2s;
-        }
-        .search-box:focus-within {
-            border-color: #2b6cb0;
-            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
-        }
-        .search-box .search-icon {
-            color: #a0aec0;
-            font-size: 1rem;
-            margin-right: 0.5rem;
-        }
-        .search-box input {
-            border: none;
-            padding: 0.625rem 0;
-            font-size: 0.95rem;
-            width: 100%;
-            outline: none;
-            background: transparent;
-        }
-        .search-box input::placeholder {
-            color: #a0aec0;
-        }
-        .filter-group {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .filter-group label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #4a5568;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        .filter-btn {
-            padding: 0.4rem 0.9rem;
-            border: 2px solid #e2e8f0;
-            background: white;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #4a5568;
-        }
-        .filter-btn:hover {
-            background: #edf2f7;
-            border-color: #cbd5e0;
-        }
-        .filter-btn.active {
-            background: #2b6cb0;
-            color: white;
-            border-color: #2b6cb0;
-        }
-        .filter-btn.active:hover {
-            background: #1a4f8b;
-            border-color: #1a4f8b;
-        }
-        .filter-btn .count {
-            background: rgba(255,255,255,0.2);
-            padding: 0.1rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            margin-left: 0.25rem;
-        }
-        .filter-btn.active .count {
-            background: rgba(255,255,255,0.3);
-        }
-        .results-info {
-            font-size: 0.875rem;
-            color: #718096;
-            padding: 0.5rem 0;
-        }
-        .clear-search-btn {
-            background: none;
-            border: none;
-            color: #a0aec0;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-            font-size: 1.1rem;
-            display: none;
-        }
-        .clear-search-btn:hover {
-            color: #718096;
-        }
-        .clear-search-btn.visible {
-            display: block;
-        }
-
-        .file-tag {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.6rem;
-            border-radius: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .file-tag.code {
-            background: #bee3f8;
-            color: #2a4365;
-        }
-        .file-tag.binary {
-            background: #fefcbf;
-            color: #744210;
-        }
-        .file-tag.executable {
-            background: #feb2b2;
-            color: #742a2a;
-        }
-        .file-tag.document {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        .file-tag.image {
-            background: #e9d8fd;
-            color: #44337a;
-        }
-        .file-tag.audio {
-            background: #fed7d0;
-            color: #742a2a;
-        }
-        .file-tag.video {
-            background: #fbd38d;
-            color: #744210;
-        }
-        .file-tag.archive {
-            background: #e2e8f0;
-            color: #2d3748;
-        }
-        .file-tag.unknown {
-            background: #edf2f7;
-            color: #4a5568;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 3rem 0;
-            color: #a0aec0;
-        }
-        .no-results .emoji {
-            font-size: 3rem;
-            display: block;
-            margin-bottom: 1rem;
-        }
-
-        .filter-hint {
-            font-size: 0.75rem;
-            color: #a0aec0;
-            margin-top: 0.25rem;
-            font-style: italic;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1.5rem;
-            padding: 1rem 0;
-            flex-wrap: wrap;
-        }
-        .pagination button {
-            padding: 0.4rem 0.9rem;
-            border: 2px solid #e2e8f0;
-            background: white;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #4a5568;
-            min-width: 40px;
-        }
-        .pagination button:hover:not(:disabled) {
-            background: #edf2f7;
-            border-color: #2b6cb0;
-        }
-        .pagination button.active {
-            background: #2b6cb0;
-            color: white;
-            border-color: #2b6cb0;
-        }
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .pagination .page-info {
-            padding: 0.4rem 1rem;
-            color: #718096;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        .pagination .page-input-group {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        .pagination .page-input-group input {
-            width: 60px;
-            padding: 0.3rem 0.4rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            text-align: center;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .pagination .page-input-group input:focus {
-            border-color: #2b6cb0;
-        }
-        .pagination .page-input-group button {
-            padding: 0.3rem 0.7rem;
-            font-size: 0.8rem;
-        }
-        .pagination .ellipsis {
-            color: #a0aec0;
-            padding: 0 0.25rem;
-        }
-
-        .pat-section {
-            background: #f7fafc;
-            padding: 1rem;
-            border-radius: 10px;
+            border-radius: var(--md-shape-medium);
             margin: 1rem 0;
         }
-        .pat-input-group {
+        .md-token-section .input-group {
             display: flex;
             gap: 0.75rem;
             flex-wrap: wrap;
             align-items: center;
         }
-        .pat-input-group input {
+        .md-token-section .input-group .md-text-field {
             flex: 1;
             min-width: 250px;
-            padding: 0.625rem 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-family: 'Courier New', monospace;
-            outline: none;
-            transition: border-color 0.2s;
-            background: white;
         }
-        .pat-input-group input:focus {
-            border-color: #2b6cb0;
-        }
-        .pat-input-group input::placeholder {
-            color: #a0aec0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        .pat-input-group button {
-            padding: 0.625rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .btn-save-pat {
-            background: #48bb78;
-            color: white;
-        }
-        .btn-save-pat:hover {
-            background: #38a169;
-        }
-        .btn-remove-pat {
-            background: #fc8181;
-            color: white;
-        }
-        .btn-remove-pat:hover {
-            background: #e53e3e;
-        }
-        .pat-status {
+        .md-token-section .status-group {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
             flex-wrap: wrap;
-            font-size: 0.875rem;
             padding: 0.5rem 0;
+            font-size: 0.875rem;
+            color: var(--md-on-surface-variant);
         }
-        .pat-status .status-badge {
-            padding: 0.2rem 0.8rem;
-            border-radius: 20px;
-            font-weight: 600;
+        .md-token-section .status-group .badge {
+            padding: 0.125rem 0.75rem;
+            border-radius: var(--md-shape-full);
+            font-weight: 500;
             font-size: 0.75rem;
         }
-        .pat-status .status-badge.active {
-            background: #c6f6d5;
-            color: #22543d;
+        .md-token-section .status-group .badge.active {
+            background: var(--md-primary-container);
+            color: var(--md-on-primary-container);
         }
-        .pat-status .status-badge.inactive {
-            background: #fed7d0;
-            color: #742a2a;
+        .md-token-section .status-group .badge.inactive {
+            background: var(--md-error-container);
+            color: var(--md-on-error-container);
         }
-        .pat-status .status-badge.disabled {
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-        .rate-limit-info {
-            font-size: 0.8rem;
-            color: #718096;
-            padding: 0.25rem 0;
-        }
-        .rate-limit-info .highlight {
-            font-weight: 600;
-            color: #2b6cb0;
-        }
-
-        .token-hint {
-            background: #ebf8ff;
+        .md-token-section .hint {
+            background: var(--md-primary-container);
             padding: 0.75rem 1rem;
-            border-radius: 6px;
+            border-radius: var(--md-shape-extra-small);
             font-size: 0.85rem;
-            color: #2a4365;
+            color: var(--md-on-primary-container);
             margin-top: 0.5rem;
         }
-        .token-hint a {
-            color: #2b6cb0;
+        .md-token-section .hint a {
+            color: var(--md-primary);
             text-decoration: underline;
         }
-        .token-hint code {
-            background: rgba(0,0,0,0.05);
+        .md-token-section .hint code {
+            background: rgba(0,0,0,0.06);
             padding: 0.1rem 0.4rem;
-            border-radius: 4px;
+            border-radius: var(--md-shape-extra-small);
             font-size: 0.8rem;
         }
 
-        .memory-cache-indicator {
-            font-size: 0.75rem;
-            color: #718096;
+        .md-rate-limit {
+            font-size: 0.8rem;
+            color: var(--md-on-surface-variant);
             padding: 0.25rem 0;
-            font-style: italic;
+        }
+        .md-rate-limit .highlight {
+            font-weight: 600;
+            color: var(--md-primary);
         }
 
+        /* File List Container */
+        .md-file-list {
+            margin-top: 0.5rem;
+        }
+        .md-file-list .md-list-item {
+            border-bottom: 1px solid var(--md-outline-variant);
+            border-radius: 0;
+        }
+        .md-file-list .md-list-item:last-child {
+            border-bottom: none;
+        }
+        .md-file-list .md-list-item:hover {
+            background: var(--md-surface-variant);
+            border-radius: var(--md-shape-small);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .search-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .search-box {
-                min-width: unset;
-            }
-            .filter-group {
-                justify-content: center;
-            }
-            .header-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .refresh-btn {
-                justify-content: center;
-            }
-            .file-list li {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-            .file-size {
-                align-self: flex-start;
-            }
-            .file-meta {
-                width: 100%;
-            }
-            .file-tag {
-                font-size: 0.65rem;
-            }
-            .pagination {
-                gap: 0.25rem;
-            }
-            .pagination button {
-                padding: 0.3rem 0.6rem;
-                font-size: 0.75rem;
-                min-width: 32px;
-            }
-            .pat-input-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .pat-input-group input {
-                min-width: unset;
-            }
+            body { padding: 1rem; }
+            .md-card { padding: 1rem; }
+            .md-header { flex-direction: column; align-items: stretch; }
+            .md-search-bar { flex-direction: column; align-items: stretch; }
+            .md-search-bar .chip-group { justify-content: center; }
+            .md-token-section .input-group { flex-direction: column; align-items: stretch; }
+            .md-token-section .input-group .md-text-field { min-width: unset; }
+            .md-list-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            .md-list-item .trailing { width: 100%; justify-content: flex-start; }
+            .md-pagination { gap: 0.125rem; }
+            .md-pagination button { min-width: 36px; height: 36px; font-size: 0.75rem; }
+        }
+
+        /* Animations */
+        @keyframes md-ripple {
+            from { transform: scale(0); opacity: 0.3; }
+            to { transform: scale(4); opacity: 0; }
+        }
+        .md-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: currentColor;
+            animation: md-ripple 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+
+        /* Loading dots */
+        .md-loading-dots {
+            display: inline-block;
+            animation: md-dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes md-dots {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        .md-loading {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--md-on-surface-variant);
+        }
+
+        /* Material Snackbar */
+        .md-snackbar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--md-inverse-surface);
+            color: var(--md-inverse-on-surface);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--md-shape-extra-small);
+            box-shadow: var(--md-elevation-3);
+            font-size: 0.875rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            max-width: 90%;
+            text-align: center;
+        }
+        .md-snackbar.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .md-snackbar .material-symbols-outlined {
+            font-size: 1.125rem;
+            margin-right: 0.5rem;
+            vertical-align: middle;
         }
     </style>
 </head>
 <body>
-    <h1>📦 SimpleDB</h1>
-    <span class="badge">⚡ Lightweight Archive</span>
-    
-    <div class="card">
-        <h2>📋 About</h2>
-        <p><strong>SimpleDB</strong> is a minimal file archive system. Files stored here are available for direct download via permanent URLs.</p>
-        <p style="margin-top: 0.5rem;">📌 <strong>Files are fetched live from the GitHub repository.</strong></p>
-    </div>
 
-    <div id="storageWarning" class="storage-warning" style="display:none;">
-        ⚠️ Your browser doesn't support local storage. Token and cache will only work for this session.
-    </div>
+    <!-- Header -->
+    <header class="md-header">
+        <div class="title-group">
+            <span class="material-symbols-outlined icon">folder_open</span>
+            <div>
+                <h1 class="md-headline-medium" style="color: var(--md-on-surface);">SimpleDB</h1>
+                <span class="md-badge" style="background: var(--md-secondary); color: var(--md-on-secondary);">Lightweight Archive</span>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <button class="md-theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
+                <span id="themeText">Dark</span>
+            </button>
+        </div>
+    </header>
 
-    <div class="card">
-        <h2>🔑 GitHub Token Management</h2>
-        <p style="font-size: 0.9rem; color: #718096; margin-bottom: 1rem;">
-            Add a GitHub Personal Access Token to increase API rate limits from 60 to 5,000 requests per hour.
-            Tokens are stored locally in your browser.
+    <!-- About Card -->
+    <section class="md-card elevated">
+        <div class="md-card-header">
+            <span class="material-symbols-outlined icon">info</span>
+            <div>
+                <div class="md-card-title">About</div>
+                <div class="md-card-subtitle">Simple file archive with GitHub Pages</div>
+            </div>
+        </div>
+        <p class="md-body-large" style="color: var(--md-on-surface-variant);">
+            SimpleDB is a minimal file archive system. Files stored here are available for direct download via permanent URLs.
         </p>
-        
-        <div class="pat-section">
-            <div class="pat-input-group">
-                <input type="password" id="patInput" placeholder="Enter your GitHub PAT (ghp_...)" autocomplete="off">
-                <button class="btn-save-pat" id="savePatBtn">💾 Save Token</button>
-                <button class="btn-remove-pat" id="removePatBtn" style="display:none;">🗑️ Remove</button>
+        <p class="md-body-medium" style="color: var(--md-on-surface-variant); margin-top: 0.5rem;">
+            📌 Files are fetched live from the GitHub repository.
+        </p>
+    </section>
+
+    <!-- Storage Warning -->
+    <div id="storageWarning" class="md-card" style="background: var(--md-error-container); color: var(--md-on-error-container); display: none; padding: 0.75rem 1rem; margin: 0.5rem 0;">
+        <span class="material-symbols-outlined" style="font-size: 1.125rem; vertical-align: middle; margin-right: 0.5rem;">warning</span>
+        Your browser doesn't support local storage. Token and cache will only work for this session.
+    </div>
+
+    <!-- Token Management -->
+    <section class="md-card elevated">
+        <div class="md-card-header">
+            <span class="material-symbols-outlined icon">key</span>
+            <div>
+                <div class="md-card-title">GitHub Token</div>
+                <div class="md-card-subtitle">Add a PAT to increase rate limits from 60 to 5,000 requests/hour</div>
             </div>
-            
-            <div class="pat-status" id="patStatus">
+        </div>
+
+        <div class="md-token-section">
+            <div class="input-group">
+                <div class="md-text-field">
+                    <span class="material-symbols-outlined leading-icon">lock</span>
+                    <input type="password" id="patInput" placeholder="Enter GitHub PAT (ghp_...)" autocomplete="off">
+                </div>
+                <button class="md-button filled" id="savePatBtn">
+                    <span class="material-symbols-outlined">save</span>
+                    Save Token
+                </button>
+                <button class="md-button outlined" id="removePatBtn" style="display:none;">
+                    <span class="material-symbols-outlined">delete</span>
+                    Remove
+                </button>
+            </div>
+
+            <div class="status-group">
                 <span>Status:</span>
-                <span class="status-badge inactive" id="patStatusBadge">No Token</span>
-                <span id="patStatusText" style="color: #718096;">Using unauthenticated (60 req/hr)</span>
+                <span class="badge inactive" id="patStatusBadge">No Token</span>
+                <span id="patStatusText" style="color: var(--md-on-surface-variant);">Using unauthenticated (60 req/hr)</span>
             </div>
-            
-            <div class="rate-limit-info" id="rateLimitInfo">
-                💡 Current rate limit: <span class="highlight" id="rateLimitDisplay">60</span> requests per hour
-                <span id="rateLimitRemaining" style="margin-left: 1rem;"></span>
+
+            <div class="md-rate-limit">
+                💡 Rate limit: <span class="highlight" id="rateLimitDisplay">60</span> requests/hour
+                <span id="rateLimitRemaining" style="margin-left: 0.75rem;"></span>
             </div>
-            
-            <div id="storageStatus" class="memory-cache-indicator"></div>
-            
-            <div class="token-hint">
-                🔑 <a href="https://github.com/settings/tokens" target="_blank">Generate a token</a> with <code>public_repo</code> scope (or no scopes for public repos).
+
+            <div id="storageStatus" class="md-body-small" style="color: var(--md-on-surface-variant); padding: 0.25rem 0;"></div>
+
+            <div class="hint">
+                <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem;">info</span>
+                <a href="https://github.com/settings/tokens" target="_blank">Generate a token</a> with <code>public_repo</code> scope.
                 Your token is stored only in your browser's local storage.
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="card">
-        <div class="header-actions">
-            <h2>📁 Available Files</h2>
-            <div class="controls">
-                <span class="cache-info" id="cacheInfo" role="status" aria-live="polite">
-                    <span class="dot" id="cacheDot"></span>
+    <!-- File List -->
+    <section class="md-card elevated">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+            <div class="md-card-header" style="margin-bottom: 0;">
+                <span class="material-symbols-outlined icon">folder</span>
+                <div>
+                    <div class="md-card-title">Files</div>
+                    <div class="md-card-subtitle">Browse archived files</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <div class="md-stats" id="cacheInfo" role="status">
+                    <span class="dot disabled" id="cacheDot"></span>
                     <span id="cacheStatus">Loading...</span>
-                </span>
-                <button class="refresh-btn" id="refreshBtn" aria-label="Refresh file list" title="Refresh file list">
-                    <span id="refreshIcon">🔄</span> 
+                </div>
+                <button class="md-button filled" id="refreshBtn" aria-label="Refresh">
+                    <span class="material-symbols-outlined" id="refreshIcon">refresh</span>
                     <span id="refreshText">Refresh</span>
-                    <span class="cooldown-timer" id="cooldownTimer" style="display:none;"></span>
+                    <span class="cooldown-timer" id="cooldownTimer" style="display:none; font-size:0.75rem; background:rgba(255,255,255,0.2); padding:0.1rem 0.5rem; border-radius:12px; margin-left:0.25rem;"></span>
                 </button>
             </div>
         </div>
 
-        <div class="search-container">
-            <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="Search files by name..." aria-label="Search files">
-                <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">✕</button>
+        <!-- Search & Filter -->
+        <div class="md-search-bar">
+            <div class="md-text-field">
+                <span class="material-symbols-outlined leading-icon">search</span>
+                <input type="text" id="searchInput" placeholder="Search files by name...">
+                <span class="material-symbols-outlined trailing-icon" id="clearSearchBtn" style="display:none; cursor:pointer;">close</span>
             </div>
-            <div class="filter-group" role="group" aria-label="File type filters">
-                <label>📂 Filter:</label>
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="code">💻 Code</button>
-                <button class="filter-btn" data-filter="binary">🔧 Binary</button>
-                <button class="filter-btn" data-filter="executable">⚡ Executable</button>
-                <button class="filter-btn" data-filter="document">📄 Document</button>
-                <button class="filter-btn" data-filter="image">🖼️ Image</button>
-                <button class="filter-btn" data-filter="audio">🎵 Audio</button>
-                <button class="filter-btn" data-filter="video">🎬 Video</button>
-                <button class="filter-btn" data-filter="archive">📦 Archive</button>
+            <div class="chip-group">
+                <label>Filter:</label>
+                <button class="md-chip active" data-filter="all">All</button>
+                <button class="md-chip" data-filter="code">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">code</span> Code
+                </button>
+                <button class="md-chip" data-filter="binary">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">memory</span> Binary
+                </button>
+                <button class="md-chip" data-filter="executable">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">play_arrow</span> Executable
+                </button>
+                <button class="md-chip" data-filter="document">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">description</span> Document
+                </button>
+                <button class="md-chip" data-filter="image">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">image</span> Image
+                </button>
+                <button class="md-chip" data-filter="audio">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">music_note</span> Audio
+                </button>
+                <button class="md-chip" data-filter="video">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">videocam</span> Video
+                </button>
+                <button class="md-chip" data-filter="archive">
+                    <span class="material-symbols-outlined" style="font-size:1rem;">folder_zip</span> Archive
+                </button>
             </div>
-            <div class="filter-hint">💡 "Binary" includes executables, "Executable" shows only runnable files</div>
+            <div class="md-body-small" style="color: var(--md-on-surface-variant); width:100%;">
+                💡 "Binary" includes executables, "Executable" shows only runnable files
+            </div>
         </div>
 
-        <div id="resultsInfo" class="results-info">Showing all files</div>
-        <div id="file-list-container" role="region" aria-live="polite">
-            <div class="loading">
-                Loading files<span class="loading-dots">...</span>
+        <!-- Results Info -->
+        <div class="md-stats" id="resultsInfo">Showing all files</div>
+
+        <!-- File List Container -->
+        <div id="file-list-container" class="md-file-list">
+            <div class="md-loading">
+                Loading files<span class="md-loading-dots">...</span>
             </div>
         </div>
-        
-        <div id="paginationContainer" class="pagination" style="display:none;"></div>
-    </div>
 
-    <div class="card">
-        <h2>🔗 Usage</h2>
-        <p>Files are accessible via:</p>
-        <div class="usage">
+        <!-- Pagination -->
+        <div id="paginationContainer" class="md-pagination" style="display:none;"></div>
+    </section>
+
+    <!-- Usage -->
+    <section class="md-card elevated">
+        <div class="md-card-header">
+            <span class="material-symbols-outlined icon">link</span>
+            <div>
+                <div class="md-card-title">Usage</div>
+                <div class="md-card-subtitle">Access your files via permanent URLs</div>
+            </div>
+        </div>
+        <div style="background: var(--md-surface-variant); padding: 1rem; border-radius: var(--md-shape-small); font-family: 'Roboto Mono', monospace; font-size: 0.9rem; color: var(--md-on-surface);">
             https://dryfish09.github.io/SimpleDB/files/<strong>filename.ext</strong>
         </div>
-        <p style="margin-top: 1rem; font-size: 0.95rem;">Example: <code>https://dryfish09.github.io/SimpleDB/files/sample.pdf</code></p>
-    </div>
+        <p class="md-body-medium" style="color: var(--md-on-surface-variant); margin-top: 0.75rem;">
+            Example: <code style="background: var(--md-surface-variant); padding: 0.1rem 0.4rem; border-radius: var(--md-shape-extra-small);">https://dryfish09.github.io/SimpleDB/files/sample.pdf</code>
+        </p>
+    </section>
 
-    <div class="card">
-        <h2>📝 How to Add Files</h2>
-        <ol style="padding-left: 1.5rem; margin-top: 0.5rem;">
-            <li>Place your file in the <code>/files/</code> directory</li>
+    <!-- How to Add -->
+    <section class="md-card elevated">
+        <div class="md-card-header">
+            <span class="material-symbols-outlined icon">add_box</span>
+            <div>
+                <div class="md-card-title">How to Add Files</div>
+                <div class="md-card-subtitle">Upload files to your archive</div>
+            </div>
+        </div>
+        <ol class="md-body-large" style="padding-left: 1.5rem; color: var(--md-on-surface-variant);">
+            <li>Place your file in the <code style="background: var(--md-surface-variant); padding: 0.1rem 0.4rem; border-radius: var(--md-shape-extra-small);">/files/</code> directory</li>
             <li>Commit and push to GitHub</li>
             <li>File becomes available at the URL above</li>
             <li>Refresh this page to see it in the list</li>
         </ol>
-    </div>
+    </section>
 
-    <footer>
-        <p>🚀 <a href="https://github.com/dryfish09/SimpleDB" style="color: #2b6cb0; text-decoration: none;">View on GitHub</a> &middot; SimpleDB &middot; Open source</p>
+    <!-- Footer -->
+    <footer style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--md-outline-variant); text-align: center; color: var(--md-on-surface-variant); font-size: 0.875rem;">
+        <a href="https://github.com/dryfish09/SimpleDB" style="color: var(--md-primary); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <span class="material-symbols-outlined" style="font-size: 1.125rem;">code</span>
+            View on GitHub
+        </a>
+        <span style="margin: 0 0.5rem;">·</span>
+        SimpleDB
+        <span style="margin: 0 0.5rem;">·</span>
+        Open source
     </footer>
+
+    <!-- Snackbar -->
+    <div id="snackbar" class="md-snackbar">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span id="snackbarMessage">Success</span>
+    </div>
 
     <script>
         const USERNAME = 'dryfish09';
@@ -785,6 +1097,7 @@
         const CACHE_KEY = 'simpledb_cache';
         const PAT_STORAGE_KEY = 'simpledb_pat';
         const COOLDOWN_KEY = 'simpledb_cooldown';
+        const THEME_KEY = 'simpledb_theme';
         const CACHE_DURATION = 30 * 60 * 1000;
         const REFRESH_COOLDOWN = 50;
         const FILES_PER_PAGE = 30;
@@ -793,6 +1106,7 @@
         const API_URL = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILES_PATH}`;
         const COMMITS_API = `https://api.github.com/repos/${USERNAME}/${REPO}/commits?path=${FILES_PATH}&per_page=100`;
 
+        // DOM elements
         const container = document.getElementById('file-list-container');
         const refreshBtn = document.getElementById('refreshBtn');
         const refreshIcon = document.getElementById('refreshIcon');
@@ -803,7 +1117,7 @@
         const searchInput = document.getElementById('searchInput');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const resultsInfo = document.getElementById('resultsInfo');
-        const filterBtns = document.querySelectorAll('.filter-btn');
+        const filterBtns = document.querySelectorAll('.md-chip');
         const paginationContainer = document.getElementById('paginationContainer');
         const patInput = document.getElementById('patInput');
         const savePatBtn = document.getElementById('savePatBtn');
@@ -814,6 +1128,11 @@
         const rateLimitRemaining = document.getElementById('rateLimitRemaining');
         const storageWarning = document.getElementById('storageWarning');
         const storageStatus = document.getElementById('storageStatus');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        const snackbar = document.getElementById('snackbar');
+        const snackbarMessage = document.getElementById('snackbarMessage');
 
         let isRefreshing = false;
         let autoRefreshInterval = null;
@@ -830,8 +1149,71 @@
         let githubToken = '';
         let rateLimitRemainingCount = null;
         let rateLimitResetTime = null;
+        let snackbarTimeout = null;
 
-        // === STORAGE MANAGEMENT ===
+        // === SNACKBAR ===
+        function showSnackbar(message, type = 'success') {
+            const icon = snackbar.querySelector('.material-symbols-outlined');
+            if (type === 'success') {
+                icon.textContent = 'check_circle';
+                snackbar.style.background = 'var(--md-inverse-surface)';
+                snackbar.style.color = 'var(--md-inverse-on-surface)';
+            } else if (type === 'error') {
+                icon.textContent = 'error';
+                snackbar.style.background = 'var(--md-error)';
+                snackbar.style.color = 'var(--md-on-error)';
+            } else {
+                icon.textContent = 'info';
+                snackbar.style.background = 'var(--md-primary)';
+                snackbar.style.color = 'var(--md-on-primary)';
+            }
+            snackbarMessage.textContent = message;
+            snackbar.classList.add('visible');
+            if (snackbarTimeout) clearTimeout(snackbarTimeout);
+            snackbarTimeout = setTimeout(() => {
+                snackbar.classList.remove('visible');
+            }, 3000);
+        }
+
+        // === THEME ===
+        function loadTheme() {
+            try {
+                const saved = getStorageItem(THEME_KEY);
+                if (saved) {
+                    document.documentElement.setAttribute('data-theme', saved);
+                    updateThemeUI(saved);
+                    return saved;
+                }
+            } catch (e) {}
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                updateThemeUI('dark');
+                return 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', 'light');
+            updateThemeUI('light');
+            return 'light';
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            setStorageItem(THEME_KEY, newTheme);
+            updateThemeUI(newTheme);
+        }
+
+        function updateThemeUI(theme) {
+            if (theme === 'dark') {
+                themeIcon.textContent = 'light_mode';
+                themeText.textContent = 'Light';
+            } else {
+                themeIcon.textContent = 'dark_mode';
+                themeText.textContent = 'Dark';
+            }
+        }
+
+        // === STORAGE ===
         let storageAvailable = false;
         let storageType = 'none';
         let memoryCache = {};
@@ -863,14 +1245,9 @@
         function getStorageItem(key) {
             if (storageAvailable) {
                 try {
-                    if (storageType === 'localStorage') {
-                        return localStorage.getItem(key);
-                    } else if (storageType === 'sessionStorage') {
-                        return sessionStorage.getItem(key);
-                    }
-                } catch (e) {
-                    return memoryCache[key] || null;
-                }
+                    if (storageType === 'localStorage') return localStorage.getItem(key);
+                    else if (storageType === 'sessionStorage') return sessionStorage.getItem(key);
+                } catch (e) { return memoryCache[key] || null; }
             }
             return memoryCache[key] || null;
         }
@@ -878,14 +1255,9 @@
         function setStorageItem(key, value) {
             if (storageAvailable) {
                 try {
-                    if (storageType === 'localStorage') {
-                        localStorage.setItem(key, value);
-                    } else if (storageType === 'sessionStorage') {
-                        sessionStorage.setItem(key, value);
-                    }
-                } catch (e) {
-                    memoryCache[key] = value;
-                }
+                    if (storageType === 'localStorage') localStorage.setItem(key, value);
+                    else if (storageType === 'sessionStorage') sessionStorage.setItem(key, value);
+                } catch (e) { memoryCache[key] = value; }
             } else {
                 memoryCache[key] = value;
             }
@@ -894,14 +1266,9 @@
         function removeStorageItem(key) {
             if (storageAvailable) {
                 try {
-                    if (storageType === 'localStorage') {
-                        localStorage.removeItem(key);
-                    } else if (storageType === 'sessionStorage') {
-                        sessionStorage.removeItem(key);
-                    }
-                } catch (e) {
-                    delete memoryCache[key];
-                }
+                    if (storageType === 'localStorage') localStorage.removeItem(key);
+                    else if (storageType === 'sessionStorage') sessionStorage.removeItem(key);
+                } catch (e) { delete memoryCache[key]; }
             } else {
                 delete memoryCache[key];
             }
@@ -910,17 +1277,17 @@
         function updateStorageUI() {
             if (storageAvailable) {
                 storageWarning.style.display = 'none';
-                storageStatus.textContent = `💾 Using ${storageType} for persistence`;
-                storageStatus.style.color = '#48bb78';
+                storageStatus.textContent = `Using ${storageType} for persistence`;
+                storageStatus.style.color = '#4caf50';
             } else {
                 storageWarning.style.display = 'block';
                 storageStatus.textContent = '⚠️ Using memory cache (no persistence across sessions)';
-                storageStatus.style.color = '#ecc94b';
+                storageStatus.style.color = '#ff9800';
                 cacheDot.className = 'dot stale';
             }
         }
 
-        // === PAT MANAGEMENT ===
+        // === PAT ===
         function loadPat() {
             const saved = getStorageItem(PAT_STORAGE_KEY);
             if (saved) {
@@ -953,15 +1320,15 @@
 
         function updatePatUI() {
             if (useAuth && githubToken) {
-                patStatusBadge.className = 'status-badge active';
+                patStatusBadge.className = 'badge active';
                 patStatusBadge.textContent = 'Active';
                 patStatusText.textContent = 'Using token (5,000 req/hr)';
                 rateLimitDisplay.textContent = '5,000';
-                removePatBtn.style.display = 'inline-block';
+                removePatBtn.style.display = 'inline-flex';
                 patInput.value = githubToken;
                 patInput.type = 'password';
             } else {
-                patStatusBadge.className = 'status-badge inactive';
+                patStatusBadge.className = 'badge inactive';
                 patStatusBadge.textContent = 'No Token';
                 patStatusText.textContent = 'Using unauthenticated (60 req/hr)';
                 rateLimitDisplay.textContent = '60';
@@ -979,31 +1346,54 @@
         function updateRateLimitRemaining(headers) {
             const remaining = headers.get('X-RateLimit-Remaining');
             const reset = headers.get('X-RateLimit-Reset');
+            const limit = headers.get('X-RateLimit-Limit');
             
             if (remaining) {
                 rateLimitRemainingCount = parseInt(remaining);
-                if (useAuth) {
-                    rateLimitRemaining.textContent = `🔢 ${remaining} remaining`;
-                } else {
-                    rateLimitRemaining.textContent = `🔢 ${remaining} remaining (60 total)`;
-                }
+                let text = `🔢 ${remaining} remaining`;
+                if (limit) text += ` / ${limit}`;
+                rateLimitRemaining.textContent = text;
             }
             
             if (reset) {
                 rateLimitResetTime = parseInt(reset) * 1000;
                 const resetDate = new Date(rateLimitResetTime);
-                rateLimitRemaining.textContent += ` | Reset: ${resetDate.toLocaleTimeString()}`;
+                if (!rateLimitRemaining.textContent.includes('Reset:')) {
+                    rateLimitRemaining.textContent += ` | Reset: ${resetDate.toLocaleTimeString()}`;
+                }
             }
         }
 
-        // === COOLDOWN - FIXED ===
+        async function checkRateLimit() {
+            try {
+                const response = await fetch('https://api.github.com/rate_limit', {
+                    headers: getHeaders()
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const remaining = data.rate.remaining;
+                    const limit = data.rate.limit;
+                    const reset = data.rate.reset;
+                    
+                    rateLimitRemainingCount = remaining;
+                    rateLimitResetTime = reset * 1000;
+                    
+                    let text = `🔢 ${remaining} remaining / ${limit}`;
+                    if (reset) {
+                        const resetDate = new Date(reset * 1000);
+                        text += ` | Reset: ${resetDate.toLocaleTimeString()}`;
+                    }
+                    rateLimitRemaining.textContent = text;
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        // === COOLDOWN ===
         function getCooldownEndTime() {
             const saved = getStorageItem(COOLDOWN_KEY);
             if (saved) {
                 const time = parseInt(saved);
-                if (!isNaN(time)) {
-                    return time;
-                }
+                if (!isNaN(time)) return time;
             }
             return 0;
         }
@@ -1032,13 +1422,12 @@
             refreshBtn.disabled = false;
             cooldownTimer.style.display = 'none';
             refreshText.textContent = 'Refresh';
-            refreshIcon.textContent = '🔄';
-            refreshIcon.className = '';
+            refreshIcon.textContent = 'refresh';
+            refreshIcon.className = 'material-symbols-outlined';
         }
 
         function updateCooldownUI() {
-            const now = Date.now();
-            const remaining = Math.max(0, cooldownEndTime - now);
+            const remaining = Math.max(0, cooldownEndTime - Date.now());
             
             if (remaining > 0) {
                 const seconds = Math.ceil(remaining / 1000);
@@ -1046,15 +1435,14 @@
                 cooldownTimer.style.display = 'inline';
                 cooldownTimer.textContent = `${seconds}s`;
                 refreshText.textContent = 'Wait';
-                refreshIcon.textContent = '⏳';
-                refreshIcon.className = '';
+                refreshIcon.textContent = 'hourglass_top';
+                refreshIcon.className = 'material-symbols-outlined';
                 
                 if (cooldownTimeout) clearInterval(cooldownTimeout);
                 cooldownTimeout = setInterval(() => {
                     const remainingNow = Math.max(0, cooldownEndTime - Date.now());
                     if (remainingNow > 0) {
-                        const secs = Math.ceil(remainingNow / 1000);
-                        cooldownTimer.textContent = `${secs}s`;
+                        cooldownTimer.textContent = `${Math.ceil(remainingNow / 1000)}s`;
                     } else {
                         clearCooldown();
                     }
@@ -1087,9 +1475,7 @@
                     return null;
                 }
                 return cacheData.data;
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
         function saveCacheData(data) {
@@ -1098,9 +1484,7 @@
                     timestamp: Date.now(),
                     data: data
                 }));
-            } catch (e) {
-                // Memory cache fallback
-            }
+            } catch (e) {}
         }
 
         function clearCache() {
@@ -1109,13 +1493,12 @@
 
         function updateCacheStatus(status) {
             if (!storageAvailable) {
-                cacheDot.className = 'dot stale';
+                cacheDot.className = 'dot disabled';
                 cacheStatus.textContent = 'Memory cache only';
                 return;
             }
-            
             if (status === 'valid') {
-                cacheDot.className = 'dot';
+                cacheDot.className = 'dot valid';
                 cacheStatus.textContent = 'Cache valid';
             } else if (status === 'rate-limited') {
                 cacheDot.className = 'dot error';
@@ -1154,39 +1537,34 @@
         // === FILE FUNCTIONS ===
         function getFileType(filename) {
             const ext = filename.split('.').pop().toLowerCase();
+            const codeExts = ['js','ts','py','java','cpp','c','h','hpp','go','rs','rb','php','swift','kt','scala','clj','lisp','sql','sh','bash','zsh','fish','pl','pm','r','m','jl','ex','exs','erl','hrl','fs','fsx','cl','lsp'];
+            const execExts = ['exe','msi','dmg','pkg','deb','rpm','appimage','flatpak','jar','war','class','jmod','apk','run','bin'];
+            const binExts = ['bin','dat','db','sqlite','mdb','accdb','dll','so','dylib','obj','o','lib','a','bc','wasm'];
+            const docExts = ['pdf','doc','docx','txt','rtf','odt','md','tex','log','csv','xls','xlsx','ppt','pptx','odp','ods'];
+            const imgExts = ['jpg','jpeg','png','gif','svg','bmp','webp','ico','tiff','tif','psd','ai','eps','raw','cr2','nef'];
+            const audExts = ['mp3','wav','flac','aac','ogg','wma','m4a','aiff','opus','alac'];
+            const vidExts = ['mp4','avi','mov','mkv','webm','wmv','flv','m4v','3gp','ogv','mpeg','mpg'];
+            const arcExts = ['zip','rar','7z','tar','gz','bz2','xz','tgz','iso','img','cab','lzh','lha','arj','zst'];
             
-            const codeExtensions = ['js', 'ts', 'py', 'java', 'cpp', 'c', 'h', 'hpp', 'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'clj', 'lisp', 'sql', 'sh', 'bash', 'zsh', 'fish', 'pl', 'pm', 'r', 'm', 'jl', 'ex', 'exs', 'erl', 'hrl', 'fs', 'fsx', 'cl', 'lsp'];
-            const executableExtensions = ['exe', 'msi', 'dmg', 'pkg', 'deb', 'rpm', 'appimage', 'flatpak', 'jar', 'war', 'class', 'jmod', 'apk', 'run', 'bin'];
-            const binaryExtensions = ['bin', 'dat', 'db', 'sqlite', 'mdb', 'accdb', 'dll', 'so', 'dylib', 'obj', 'o', 'lib', 'a', 'bc', 'wasm'];
-            const documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt', 'md', 'tex', 'log', 'csv', 'xls', 'xlsx', 'ppt', 'pptx', 'odp', 'ods'];
-            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'webp', 'ico', 'tiff', 'tif', 'psd', 'ai', 'eps', 'raw', 'cr2', 'nef'];
-            const audioExtensions = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a', 'aiff', 'opus', 'alac'];
-            const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv', 'flv', 'm4v', '3gp', 'ogv', 'mpeg', 'mpg'];
-            const archiveExtensions = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'iso', 'img', 'cab', 'lzh', 'lha', 'arj', 'zst'];
-            
-            if (executableExtensions.includes(ext)) return 'executable';
-            if (codeExtensions.includes(ext)) return 'code';
-            if (binaryExtensions.includes(ext)) return 'binary';
-            if (documentExtensions.includes(ext)) return 'document';
-            if (imageExtensions.includes(ext)) return 'image';
-            if (audioExtensions.includes(ext)) return 'audio';
-            if (videoExtensions.includes(ext)) return 'video';
-            if (archiveExtensions.includes(ext)) return 'archive';
+            if (execExts.includes(ext)) return 'executable';
+            if (codeExts.includes(ext)) return 'code';
+            if (binExts.includes(ext)) return 'binary';
+            if (docExts.includes(ext)) return 'document';
+            if (imgExts.includes(ext)) return 'image';
+            if (audExts.includes(ext)) return 'audio';
+            if (vidExts.includes(ext)) return 'video';
+            if (arcExts.includes(ext)) return 'archive';
             return 'unknown';
         }
 
         function matchesFilter(fileType, filterType) {
             if (filterType === 'all') return true;
-            if (filterType === 'binary') {
-                return fileType === 'binary' || fileType === 'executable';
-            }
+            if (filterType === 'binary') return fileType === 'binary' || fileType === 'executable';
             return fileType === filterType;
         }
 
         function getHeaders() {
-            const headers = {
-                'Accept': 'application/vnd.github.v3+json'
-            };
+            const headers = { 'Accept': 'application/vnd.github.v3+json' };
             if (useAuth && githubToken && githubToken.startsWith('ghp_')) {
                 headers['Authorization'] = `token ${githubToken}`;
             }
@@ -1194,27 +1572,15 @@
         }
 
         async function fetchWithAuth(url) {
-            const response = await fetch(url, {
-                headers: getHeaders()
-            });
-            
-            if (response.headers) {
-                updateRateLimitRemaining(response.headers);
-            }
-            
+            const response = await fetch(url, { headers: getHeaders() });
+            if (response.headers) updateRateLimitRemaining(response.headers);
             if (response.status === 401 && useAuth) {
-                console.log('⚠️ Token failed, falling back to unauthenticated');
                 useAuth = false;
                 removePat();
-                const retryResponse = await fetch(url, {
-                    headers: {
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-                if (retryResponse.headers) {
-                    updateRateLimitRemaining(retryResponse.headers);
-                }
-                return retryResponse;
+                showSnackbar('Token invalid, falling back to unauthenticated', 'error');
+                const retry = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+                if (retry.headers) updateRateLimitRemaining(retry.headers);
+                return retry;
             }
             return response;
         }
@@ -1229,14 +1595,8 @@
             try {
                 const date = new Date(dateString);
                 if (isNaN(date.getTime())) return 'Recently added';
-                return date.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                });
-            } catch (e) {
-                return 'Recently added';
-            }
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch (e) { return 'Recently added'; }
         }
 
         function getFileIcon(filename) {
@@ -1259,19 +1619,13 @@
 
         function filterFiles(files, searchTerm, filterType) {
             if (!files || !Array.isArray(files)) return [];
-            
             let filtered = files.filter(item => item && item.type === 'file');
             if (searchTerm.trim()) {
                 const term = searchTerm.toLowerCase().trim();
-                filtered = filtered.filter(file => 
-                    file.name && file.name.toLowerCase().includes(term)
-                );
+                filtered = filtered.filter(file => file.name && file.name.toLowerCase().includes(term));
             }
             if (filterType !== 'all') {
-                filtered = filtered.filter(file => {
-                    const type = getFileType(file.name);
-                    return matchesFilter(type, filterType);
-                });
+                filtered = filtered.filter(file => matchesFilter(getFileType(file.name), filterType));
             }
             return filtered;
         }
@@ -1279,65 +1633,49 @@
         function renderPagination(totalFiles) {
             const totalFiltered = totalFiles || 0;
             totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
-            
             if (totalPages <= 1 || totalFiltered === 0) {
                 paginationContainer.style.display = 'none';
                 return;
             }
-            
             paginationContainer.style.display = 'flex';
             
             let html = '';
+            html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.25rem;">chevron_left</span></button>`;
             
-            html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>◀</button>`;
+            const maxVisible = 7;
+            let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let end = Math.min(totalPages, start + maxVisible - 1);
+            if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
             
-            const maxVisiblePages = 7;
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-            
-            if (endPage - startPage < maxVisiblePages - 1) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
-            }
-            
-            if (startPage > 1) {
+            if (start > 1) {
                 html += `<button onclick="goToPage(1)">1</button>`;
-                if (startPage > 2) {
-                    html += `<span class="ellipsis">…</span>`;
-                }
+                if (start > 2) html += `<span class="ellipsis">…</span>`;
             }
-            
-            for (let i = startPage; i <= endPage; i++) {
+            for (let i = start; i <= end; i++) {
                 html += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
             }
-            
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                    html += `<span class="ellipsis">…</span>`;
-                }
+            if (end < totalPages) {
+                if (end < totalPages - 1) html += `<span class="ellipsis">…</span>`;
                 html += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
             }
             
-            html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>▶</button>`;
+            html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}><span class="material-symbols-outlined" style="font-size:1.25rem;">chevron_right</span></button>`;
             
             html += `
                 <div class="page-input-group">
-                    <span style="font-size:0.8rem;color:#718096;">Go to</span>
-                    <input type="number" id="pageInput" min="1" max="${totalPages}" value="${currentPage}" 
-                           onkeydown="if(event.key === 'Enter') jumpToPage()">
+                    <span style="font-size:0.75rem;color:var(--md-on-surface-variant);">Go</span>
+                    <input type="number" id="pageInput" min="1" max="${totalPages}" value="${currentPage}" onkeydown="if(event.key==='Enter') jumpToPage()">
                     <button onclick="jumpToPage()">Go</button>
                 </div>
             `;
-            
             paginationContainer.innerHTML = html;
         }
 
         window.goToPage = function(page) {
-            if (page < 1 || page > totalPages || page === currentPage) return;
-            if (totalPages === 0) return;
+            if (page < 1 || page > totalPages || page === currentPage || totalPages === 0) return;
             currentPage = page;
             renderCurrentPage();
-            const card = document.querySelector('.card');
-            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.querySelector('.md-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
         window.jumpToPage = function() {
@@ -1346,34 +1684,31 @@
             let page = parseInt(input.value);
             if (isNaN(page) || page < 1) page = 1;
             if (totalPages > 0 && page > totalPages) page = totalPages;
-            if (page > 0 && page <= totalPages) {
-                goToPage(page);
-            } else if (totalPages === 0) {
-                input.value = 1;
-            }
+            if (page > 0 && page <= totalPages) goToPage(page);
+            else if (totalPages === 0) input.value = 1;
         };
 
         function renderCurrentPage() {
             if (!currentFiles || currentFiles.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <p>📂 No files available</p>
+                    <div class="md-empty-state">
+                        <div class="icon material-symbols-outlined">folder_off</div>
+                        <p>No files available</p>
                     </div>
                 `;
                 paginationContainer.style.display = 'none';
                 return;
             }
-            
-            const filteredFiles = filterFiles(currentFiles, currentSearch, currentFilter);
-            const totalFiltered = filteredFiles.length;
+            const filtered = filterFiles(currentFiles, currentSearch, currentFilter);
+            const totalFiltered = filtered.length;
             totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
             
             if (totalPages === 0) {
                 container.innerHTML = `
-                    <div class="no-results">
-                        <span class="emoji">🔍</span>
+                    <div class="md-empty-state">
+                        <div class="icon material-symbols-outlined">search_off</div>
                         <p>No files found matching your criteria</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search or filter</p>
+                        <p class="md-body-small" style="margin-top:0.25rem;">Try adjusting your search or filter</p>
                     </div>
                 `;
                 paginationContainer.style.display = 'none';
@@ -1381,11 +1716,9 @@
             }
             
             if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
-            
-            const startIndex = (currentPage - 1) * FILES_PER_PAGE;
-            const endIndex = Math.min(startIndex + FILES_PER_PAGE, totalFiltered);
-            const pageFiles = filteredFiles.slice(startIndex, endIndex);
-            
+            const start = (currentPage - 1) * FILES_PER_PAGE;
+            const end = Math.min(start + FILES_PER_PAGE, totalFiltered);
+            const pageFiles = filtered.slice(start, end);
             renderFileListPage(pageFiles, totalFiltered);
             renderPagination(totalFiltered);
         }
@@ -1412,30 +1745,27 @@
             
             if (!pageFiles || pageFiles.length === 0) {
                 container.innerHTML = `
-                    <div class="no-results">
-                        <span class="emoji">🔍</span>
+                    <div class="md-empty-state">
+                        <div class="icon material-symbols-outlined">search_off</div>
                         <p>No files found matching your criteria</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search or filter</p>
+                        <p class="md-body-small" style="margin-top:0.25rem;">Try adjusting your search or filter</p>
                     </div>
                 `;
                 return;
             }
 
+            const start = (currentPage - 1) * FILES_PER_PAGE + 1;
+            const end = Math.min(start + pageFiles.length - 1, totalFiltered);
+            
             if (currentSearch.trim() || currentFilter !== 'all') {
-                let filterLabel = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
-                if (currentFilter === 'binary') {
-                    filterLabel = 'Binary (includes executables)';
-                }
-                const start = (currentPage - 1) * FILES_PER_PAGE + 1;
-                const end = Math.min(start + pageFiles.length - 1, totalFiltered);
-                resultsInfo.textContent = `Showing ${start}-${end} of ${totalFiltered} files (${filterLabel}${currentSearch.trim() ? `, search: "${currentSearch.trim()}"` : ''})`;
+                let label = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
+                if (currentFilter === 'binary') label = 'Binary (includes executables)';
+                resultsInfo.textContent = `Showing ${start}-${end} of ${totalFiltered} files (${label}${currentSearch.trim() ? `, search: "${currentSearch.trim()}"` : ''})`;
             } else {
-                const start = (currentPage - 1) * FILES_PER_PAGE + 1;
-                const end = Math.min(start + pageFiles.length - 1, totalFiles);
                 resultsInfo.textContent = `Showing ${start}-${end} of ${totalFiles} files`;
             }
 
-            let html = `<ul class="file-list">`;
+            let html = '';
             pageFiles.forEach(file => {
                 const icon = getFileIcon(file.name);
                 const size = formatSize(file.size);
@@ -1446,74 +1776,68 @@
                 const typeLabel = getTypeLabel(fileType);
                 
                 html += `
-                    <li>
-                        <div class="file-meta">
-                            <span class="file-icon" aria-hidden="true">${icon}</span>
-                            <a href="https://${USERNAME}.github.io/${REPO}/${FILES_PATH}/${encodedName}" 
-                               class="file-link" 
-                               target="_blank"
-                               rel="noopener noreferrer">
+                    <div class="md-list-item">
+                        <div class="leading">
+                            <span class="icon">${icon}</span>
+                            <a href="https://${USERNAME}.github.io/${REPO}/${FILES_PATH}/${encodedName}" class="text" target="_blank" rel="noopener noreferrer">
                                 ${file.name}
                             </a>
-                            <span class="file-tag ${fileType}">${typeLabel}</span>
-                            <span class="file-date">📅 ${dateStr}</span>
+                            <span class="md-tag ${fileType}">${typeLabel}</span>
+                            <span class="date">📅 ${dateStr}</span>
                         </div>
-                        <span class="file-size">${size}</span>
-                    </li>
+                        <div class="trailing">
+                            <span class="size">${size}</span>
+                        </div>
+                    </div>
                 `;
             });
-            html += `</ul>`;
-
             container.innerHTML = html;
         }
 
         function applySearchAndFilter() {
             if (currentFiles && currentFiles.length > 0) {
-                const filteredFiles = filterFiles(currentFiles, currentSearch, currentFilter);
-                const totalFiltered = filteredFiles.length;
-                totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
+                const filtered = filterFiles(currentFiles, currentSearch, currentFilter);
+                totalPages = Math.ceil(filtered.length / FILES_PER_PAGE);
                 currentPage = Math.min(currentPage, totalPages || 1);
                 if (currentPage < 1) currentPage = 1;
                 renderCurrentPage();
-                const card = document.querySelector('.card');
-                if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelector('.md-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
-        // === MAIN FETCH FUNCTION ===
+        // === MAIN FETCH ===
         async function fetchFromGitHub(forceRefresh = false) {
-            // Check cooldown FIRST
             if (cooldownEndTime > Date.now()) {
                 const remaining = Math.ceil((cooldownEndTime - Date.now()) / 1000);
                 container.innerHTML = `
-                    <div class="warning" role="alert">
-                        ⏳ Please wait ${remaining} seconds before refreshing again.
-                        <br><small>Cooldown period is ${REFRESH_COOLDOWN} seconds to prevent API rate limiting.</small>
+                    <div class="md-empty-state">
+                        <div class="icon material-symbols-outlined">timer</div>
+                        <p>Please wait ${remaining} seconds</p>
+                        <p class="md-body-small" style="margin-top:0.25rem;">Cooldown period is ${REFRESH_COOLDOWN} seconds</p>
                     </div>
                 `;
                 return;
             }
-
             if (isRefreshing) return;
             
             isRefreshing = true;
             refreshBtn.disabled = true;
-            refreshIcon.textContent = '⏳';
-            refreshIcon.className = 'spinning';
+            refreshIcon.textContent = 'hourglass_top';
+            refreshIcon.className = 'material-symbols-outlined spinning';
             refreshText.textContent = 'Loading...';
 
             if (!forceRefresh) {
-                const cachedData = getCacheData();
-                if (cachedData) {
-                    currentFiles = cachedData.files;
-                    currentCommits = cachedData.commits;
+                const cached = getCacheData();
+                if (cached) {
+                    currentFiles = cached.files;
+                    currentCommits = cached.commits;
                     currentPage = 1;
                     renderCurrentPage();
                     updateCacheStatus('valid');
                     isRefreshing = false;
                     refreshBtn.disabled = false;
-                    refreshIcon.textContent = '🔄';
-                    refreshIcon.className = '';
+                    refreshIcon.textContent = 'refresh';
+                    refreshIcon.className = 'material-symbols-outlined';
                     refreshText.textContent = 'Refresh';
                     return;
                 }
@@ -1522,78 +1846,75 @@
             updateCacheStatus('stale');
 
             try {
-                const [filesResponse, commitsResponse] = await Promise.all([
+                const [filesRes, commitsRes] = await Promise.all([
                     fetchWithAuth(API_URL),
                     fetchWithAuth(COMMITS_API)
                 ]);
 
-                if (filesResponse.headers) {
-                    updateRateLimitRemaining(filesResponse.headers);
-                }
+                if (filesRes.headers) updateRateLimitRemaining(filesRes.headers);
 
-                if (filesResponse.status === 403) {
-                    const remaining = filesResponse.headers.get('X-RateLimit-Remaining');
+                if (filesRes.status === 403) {
+                    const remaining = filesRes.headers.get('X-RateLimit-Remaining');
                     if (remaining === '0') {
-                        const resetTime = parseInt(filesResponse.headers.get('X-RateLimit-Reset')) * 1000;
+                        const resetTime = parseInt(filesRes.headers.get('X-RateLimit-Reset')) * 1000;
                         const resetDate = new Date(resetTime);
-                        
-                        const cachedData = getCacheData();
-                        if (cachedData) {
+                        const cached = getCacheData();
+                        if (cached) {
                             updateCacheStatus('rate-limited');
-                            currentFiles = cachedData.files;
-                            currentCommits = cachedData.commits;
+                            currentFiles = cached.files;
+                            currentCommits = cached.commits;
                             currentPage = 1;
                             renderCurrentPage();
                             container.innerHTML += `
-                                <div class="rate-limit" role="alert">
-                                    ⚠️ GitHub API rate limit exceeded. Using cached data.
-                                    <br><small>Reset at ${resetDate.toLocaleTimeString()}</small>
-                                    ${!useAuth ? '<br><small>💡 Add a PAT for higher limits (5,000/hr)</small>' : ''}
+                                <div class="md-empty-state" style="background:var(--md-warning-container);border-radius:var(--md-shape-small);padding:1rem;margin-top:1rem;">
+                                    <p class="md-body-small">⚠️ Rate limit exceeded. Using cached data. Reset at ${resetDate.toLocaleTimeString()}</p>
+                                    ${!useAuth ? '<p class="md-body-small">💡 Add a PAT for higher limits (5,000/hr)</p>' : ''}
                                 </div>
                             `;
                         } else {
                             container.innerHTML = `
-                                <div class="error" role="alert">
-                                    ⚠️ GitHub API rate limit exceeded. Please try again after ${resetDate.toLocaleTimeString()}.
-                                    <br><small>${!useAuth ? '💡 Add a PAT above for higher limits (5,000/hr)' : 'Token rate limit reached'}</small>
+                                <div class="md-empty-state">
+                                    <div class="icon material-symbols-outlined">error</div>
+                                    <p>Rate limit exceeded</p>
+                                    <p class="md-body-small">Reset at ${resetDate.toLocaleTimeString()}</p>
+                                    ${!useAuth ? '<p class="md-body-small">💡 Add a PAT above for higher limits</p>' : ''}
                                 </div>
                             `;
                             paginationContainer.style.display = 'none';
                         }
                         isRefreshing = false;
                         refreshBtn.disabled = false;
-                        refreshIcon.textContent = '🔄';
-                        refreshIcon.className = '';
+                        refreshIcon.textContent = 'refresh';
+                        refreshIcon.className = 'material-symbols-outlined';
                         refreshText.textContent = 'Refresh';
                         return;
                     }
                 }
 
-                if (!filesResponse.ok) {
-                    if (filesResponse.status === 404) {
+                if (!filesRes.ok) {
+                    if (filesRes.status === 404) {
                         container.innerHTML = `
-                            <div class="empty-state">
-                                <p>📂 The <code>/files/</code> directory doesn't exist yet.</p>
-                                <p style="font-size: 0.9rem; margin-top: 0.25rem;">Create it and add some files!</p>
+                            <div class="md-empty-state">
+                                <div class="icon material-symbols-outlined">folder_off</div>
+                                <p>No files directory</p>
+                                <p class="md-body-small" style="margin-top:0.25rem;">Create <code style="background:var(--md-surface-variant);padding:0.1rem 0.4rem;border-radius:4px;">/files/</code> and add files</p>
                             </div>
                         `;
                         paginationContainer.style.display = 'none';
                         clearCache();
                         isRefreshing = false;
                         refreshBtn.disabled = false;
-                        refreshIcon.textContent = '🔄';
-                        refreshIcon.className = '';
+                        refreshIcon.textContent = 'refresh';
+                        refreshIcon.className = 'material-symbols-outlined';
                         refreshText.textContent = 'Refresh';
                         return;
                     }
-                    throw new Error(`HTTP error! status: ${filesResponse.status}`);
+                    throw new Error(`HTTP ${filesRes.status}`);
                 }
 
-                const files = await filesResponse.json();
+                const files = await filesRes.json();
                 let commits = [];
-                if (commitsResponse.ok) {
-                    commits = await commitsResponse.json();
-                }
+                if (commitsRes.ok) commits = await commitsRes.json();
 
                 currentFiles = files;
                 currentCommits = commits;
@@ -1603,43 +1924,42 @@
                 saveCacheData({ files, commits });
                 updateCacheStatus('valid');
                 renderCurrentPage();
-                
-                // Start cooldown AFTER successful fetch
                 startCooldown();
+                showSnackbar('Files refreshed successfully', 'success');
 
             } catch (error) {
-                console.error('Error fetching files:', error);
-                
-                const cachedData = getCacheData();
-                if (cachedData) {
+                const cached = getCacheData();
+                if (cached) {
                     updateCacheStatus('stale');
-                    currentFiles = cachedData.files;
-                    currentCommits = cachedData.commits;
+                    currentFiles = cached.files;
+                    currentCommits = cached.commits;
                     currentPage = 1;
                     renderCurrentPage();
                     container.innerHTML += `
-                        <div class="warning" role="alert">
-                            ⚠️ Using cached data (refresh failed). Will retry on next refresh.
-                            <br><small>${error.message}</small>
-                            ${!useAuth ? '<br><small>💡 Try adding a PAT above for better reliability</small>' : ''}
+                        <div class="md-empty-state" style="background:var(--md-warning-container);border-radius:var(--md-shape-small);padding:1rem;margin-top:1rem;">
+                            <p class="md-body-small">⚠️ Using cached data: ${error.message}</p>
+                            ${!useAuth ? '<p class="md-body-small">💡 Try adding a PAT</p>' : ''}
                         </div>
                     `;
+                    showSnackbar('Using cached data (refresh failed)', 'error');
                 } else {
                     container.innerHTML = `
-                        <div class="error" role="alert">
-                            ❌ Failed to load files. Please try again later.
-                            <br><small style="color: #718096;">${error.message}</small>
-                            ${!useAuth ? '<br><small>💡 Add a PAT above to increase rate limits</small>' : ''}
+                        <div class="md-empty-state">
+                            <div class="icon material-symbols-outlined">error</div>
+                            <p>Failed to load files</p>
+                            <p class="md-body-small" style="margin-top:0.25rem;">${error.message}</p>
+                            ${!useAuth ? '<p class="md-body-small">💡 Add a PAT above to increase rate limits</p>' : ''}
                         </div>
                     `;
                     paginationContainer.style.display = 'none';
                     updateCacheStatus('stale');
+                    showSnackbar('Failed to load files', 'error');
                 }
             } finally {
                 isRefreshing = false;
                 refreshBtn.disabled = false;
-                refreshIcon.textContent = '🔄';
-                refreshIcon.className = '';
+                refreshIcon.textContent = 'refresh';
+                refreshIcon.className = 'material-symbols-outlined';
                 refreshText.textContent = 'Refresh';
             }
         }
@@ -1649,38 +1969,32 @@
             const token = patInput.value.trim();
             if (validatePat(token)) {
                 savePat(token);
+                setTimeout(checkRateLimit, 500);
                 fetchFromGitHub(true);
-                const statusDiv = document.getElementById('patStatus');
-                const msg = document.createElement('div');
-                msg.className = 'success';
-                msg.textContent = '✅ Token saved successfully! Refreshing files...';
-                statusDiv.appendChild(msg);
-                setTimeout(() => {
-                    if (msg.parentNode) msg.remove();
-                }, 3000);
+                showSnackbar('Token saved successfully', 'success');
             } else {
-                alert('Invalid token format. Token should start with "ghp_" and be at least 10 characters.');
+                showSnackbar('Invalid token format (must start with ghp_)', 'error');
             }
         });
 
         removePatBtn.addEventListener('click', () => {
-            if (confirm('Remove saved token? You will revert to unauthenticated (60 req/hr).')) {
+            if (confirm('Remove saved token? You will revert to 60 req/hr.')) {
                 removePat();
+                setTimeout(checkRateLimit, 500);
                 fetchFromGitHub(true);
+                showSnackbar('Token removed', 'success');
             }
         });
 
         patInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                savePatBtn.click();
-            }
+            if (e.key === 'Enter') savePatBtn.click();
         });
 
         searchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 currentSearch = e.target.value;
-                clearSearchBtn.classList.toggle('visible', currentSearch.length > 0);
+                clearSearchBtn.style.display = currentSearch.length > 0 ? 'inline' : 'none';
                 applySearchAndFilter();
             }, 300);
         });
@@ -1688,7 +2002,7 @@
         clearSearchBtn.addEventListener('click', () => {
             searchInput.value = '';
             currentSearch = '';
-            clearSearchBtn.classList.remove('visible');
+            clearSearchBtn.style.display = 'none';
             applySearchAndFilter();
             searchInput.focus();
         });
@@ -1706,29 +2020,30 @@
             fetchFromGitHub(true);
         });
 
+        themeToggle.addEventListener('click', toggleTheme);
+
         window.addEventListener('beforeunload', () => {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
             if (cooldownTimeout) clearInterval(cooldownTimeout);
             if (searchTimeout) clearTimeout(searchTimeout);
+            if (snackbarTimeout) clearTimeout(snackbarTimeout);
         });
 
-        // === INITIALIZATION ===
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check storage support
+        // === INIT ===
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadTheme();
             checkStorage();
             updateStorageUI();
-            
-            // Load PAT from storage
             loadPat();
+            await checkRateLimit();
             
-            // Check for existing cooldown FIRST
             const hasCooldown = checkExistingCooldown();
             
             if (!hasCooldown) {
-                const cachedData = getCacheData();
-                if (cachedData) {
-                    currentFiles = cachedData.files;
-                    currentCommits = cachedData.commits;
+                const cached = getCacheData();
+                if (cached) {
+                    currentFiles = cached.files;
+                    currentCommits = cached.commits;
                     currentPage = 1;
                     renderCurrentPage();
                     updateCacheStatus('valid');
@@ -1736,11 +2051,10 @@
                     fetchFromGitHub(false);
                 }
             } else {
-                // Cooldown is active, load from cache if available
-                const cachedData = getCacheData();
-                if (cachedData) {
-                    currentFiles = cachedData.files;
-                    currentCommits = cachedData.commits;
+                const cached = getCacheData();
+                if (cached) {
+                    currentFiles = cached.files;
+                    currentCommits = cached.commits;
                     currentPage = 1;
                     renderCurrentPage();
                     updateCacheStatus('valid');
@@ -1751,17 +2065,23 @@
                 const cached = getStorageItem(CACHE_KEY);
                 if (cached) {
                     try {
-                        const cacheData = JSON.parse(cached);
-                        if (Date.now() - cacheData.timestamp > CACHE_DURATION) {
-                            if (cooldownEndTime <= Date.now()) {
-                                fetchFromGitHub(true);
-                            }
-                        } else {
-                            updateCacheStatus('valid');
+                        const data = JSON.parse(cached);
+                        if (Date.now() - data.timestamp > CACHE_DURATION && cooldownEndTime <= Date.now()) {
+                            fetchFromGitHub(true);
                         }
                     } catch (e) {}
                 }
             }, 60000);
+        });
+
+        // System theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const saved = getStorageItem(THEME_KEY);
+            if (!saved) {
+                const theme = e.matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+                updateThemeUI(theme);
+            }
         });
     </script>
 </body>
