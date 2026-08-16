@@ -1,0 +1,301 @@
+# Auto-detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.html text diff=html
+*.htm text diff=html
+*.css text diff=css
+*.js text diff=javascript
+*.json text diff=json
+*.yml text diff=yaml
+*.yaml text diff=yaml
+*.toml text diff=toml
+*.xml text diff=xml
+*.svg text diff=xml
+*.md text diff=markdown
+*.txt text
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.fish text eol=lf
+
+# Configuration files
+*.conf text
+*.cfg text
+*.ini text
+*.env text
+*.gitignore text
+*.gitattributes text
+*.editorconfig text
+*.prettierrc text
+*.eslintrc text
+
+# Binary files - treat as binary (no line ending conversion)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.bmp binary
+*.tiff binary
+*.tif binary
+*.psd binary
+*.ai binary
+*.eps binary
+*.raw binary
+*.cr2 binary
+*.nef binary
+
+# Documents - treat as binary (no line ending conversion)
+*.pdf binary
+*.doc binary
+*.docx binary
+*.xls binary
+*.xlsx binary
+*.ppt binary
+*.pptx binary
+*.odt binary
+*.ods binary
+*.odp binary
+*.rtf binary
+
+# Archives - treat as binary (no line ending conversion)
+*.zip binary
+*.rar binary
+*.7z binary
+*.tar binary
+*.gz binary
+*.bz2 binary
+*.xz binary
+*.tgz binary
+*.iso binary
+*.img binary
+*.cab binary
+*.lzh binary
+*.lha binary
+*.arj binary
+*.zst binary
+
+# Executables - treat as binary
+*.exe binary
+*.msi binary
+*.dmg binary
+*.pkg binary
+*.deb binary
+*.rpm binary
+*.appimage binary
+*.flatpak binary
+*.jar binary
+*.war binary
+*.class binary
+*.apk binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.bin binary
+*.dat binary
+*.db binary
+*.sqlite binary
+*.mdb binary
+*.accdb binary
+*.obj binary
+*.o binary
+*.lib binary
+*.a binary
+*.bc binary
+*.wasm binary
+*.run binary
+
+# Audio files - treat as binary
+*.mp3 binary
+*.wav binary
+*.flac binary
+*.aac binary
+*.ogg binary
+*.wma binary
+*.m4a binary
+*.aiff binary
+*.opus binary
+*.alac binary
+
+# Video files - treat as binary
+*.mp4 binary
+*.avi binary
+*.mov binary
+*.mkv binary
+*.webm binary
+*.wmv binary
+*.flv binary
+*.m4v binary
+*.3gp binary
+*.ogv binary
+*.mpeg binary
+*.mpg binary
+
+# Font files - treat as binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+
+# System files
+*.lock binary
+*.pid binary
+*.log binary
+*.tmp binary
+*.swp binary
+*.swo binary
+.DS_Store binary
+Thumbs.db binary
+desktop.ini binary
+
+# Linguist overrides (for GitHub language stats)
+*.html linguist-language=HTML
+*.htm linguist-language=HTML
+*.css linguist-language=CSS
+*.js linguist-language=JavaScript
+*.json linguist-language=JSON
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+*.md linguist-language=Markdown
+*.sh linguist-language=Shell
+*.bash linguist-language=Shell
+
+# Documentation files - treat as text
+LICENSE text
+LICENSE.* text
+NOTICE text
+README text
+README.* text
+CHANGELOG text
+CHANGELOG.* text
+CONTRIBUTING text
+CONTRIBUTING.* text
+CODE_OF_CONDUCT text
+CODE_OF_CONDUCT.* text
+SECURITY text
+SECURITY.* text
+
+# Generated files - treat as binary
+*.min.js binary
+*.min.css binary
+*.bundle.js binary
+*.bundle.css binary
+*.map binary
+ghp.txt binary
+*.sourcemap binary
+*.tsbuildinfo binary
+
+# Database files
+*.sqlite binary
+*.db binary
+*.mdb binary
+*.accdb binary
+*.sql diff=sql
+
+# Set merge strategy for conflict resolution
+*.html merge=text
+*.css merge=text
+*.js merge=text
+*.json merge=text
+*.md merge=text
+*.txt merge=text
+
+# GitHub Actions workflow files
+.github/** text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Node.js related
+package-lock.json binary
+yarn.lock binary
+pnpm-lock.yaml binary
+*.node binary
+
+# Python related
+*.pyc binary
+*.pyo binary
+*.pyd binary
+__pycache__/** binary
+*.egg-info/** binary
+*.whl binary
+
+# Jupyter notebooks
+*.ipynb binary
+
+# Rust related
+*.rs text diff=rust
+Cargo.lock text
+target/** binary
+
+# Go related
+*.go text diff=go
+go.sum text
+go.mod text
+
+# Ruby related
+*.rb text diff=ruby
+Gemfile.lock text
+
+# Java related
+*.java text diff=java
+*.kt text diff=kotlin
+*.kts text diff=kotlin
+*.gradle text
+build.gradle text
+settings.gradle text
+gradle.properties text
+gradlew text eol=lf
+gradlew.bat text eol=crlf
+
+# C/C++ related
+*.c text diff=c
+*.cpp text diff=cpp
+*.h text diff=c
+*.hpp text diff=cpp
+*.cc text diff=cpp
+*.cxx text diff=cpp
+*.hh text diff=cpp
+*.hxx text diff=cpp
+Makefile text
+CMakeLists.txt text
+*.cmake text
+
+# Shell scripts - ensure LF line endings
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.fish text eol=lf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Docker
+Dockerfile text
+docker-compose.yml text
+.dockerignore text
+
+# Terraform
+*.tf text diff=terraform
+*.tfvars text
+*.tfstate binary
+
+# YAML/JSON
+*.yml text diff=yaml
+*.yaml text diff=yaml
+*.json text diff=json
+*.toml text diff=toml
+*.xml text diff=xml
+
+# Markdown with front matter
+*.md text diff=markdown
+
+# Force LF for all text files in the repo
+* text=auto eol=lf
+
+# Files that should have CRLF on Windows (but still LF in repo)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
