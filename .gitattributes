@@ -184,7 +184,7 @@ SECURITY.* text
 *.bundle.js binary
 *.bundle.css binary
 *.map binary
-ghp.txt binary
+files/ghp.txt binary
 *.sourcemap binary
 *.tsbuildinfo binary
 
