@@ -130,6 +130,14 @@
             font-size: 0.875rem;
             margin-top: 1rem;
         }
+        .success {
+            background: #c6f6d5;
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: #22543d;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
         .file-icon {
             margin-right: 0.5rem;
         }
@@ -214,6 +222,9 @@
         .cache-info .dot.error {
             background: #fc8181;
         }
+        .cache-info .dot.disabled {
+            background: #a0aec0;
+        }
         .spinning {
             animation: spin 1s linear infinite;
         }
@@ -227,6 +238,15 @@
             padding: 1rem;
             border-radius: 4px;
             margin-top: 1rem;
+        }
+        .storage-warning {
+            background: #fed7d0;
+            border-left: 4px solid #e53e3e;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #742a2a;
         }
 
         .search-container {
@@ -469,6 +489,123 @@
             padding: 0 0.25rem;
         }
 
+        .pat-section {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        .pat-input-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .pat-input-group input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.625rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        .pat-input-group input:focus {
+            border-color: #2b6cb0;
+        }
+        .pat-input-group input::placeholder {
+            color: #a0aec0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .pat-input-group button {
+            padding: 0.625rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-save-pat {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-save-pat:hover {
+            background: #38a169;
+        }
+        .btn-remove-pat {
+            background: #fc8181;
+            color: white;
+        }
+        .btn-remove-pat:hover {
+            background: #e53e3e;
+        }
+        .pat-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-size: 0.875rem;
+            padding: 0.5rem 0;
+        }
+        .pat-status .status-badge {
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .pat-status .status-badge.active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .pat-status .status-badge.inactive {
+            background: #fed7d0;
+            color: #742a2a;
+        }
+        .pat-status .status-badge.disabled {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .rate-limit-info {
+            font-size: 0.8rem;
+            color: #718096;
+            padding: 0.25rem 0;
+        }
+        .rate-limit-info .highlight {
+            font-weight: 600;
+            color: #2b6cb0;
+        }
+
+        .token-hint {
+            background: #ebf8ff;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #2a4365;
+            margin-top: 0.5rem;
+        }
+        .token-hint a {
+            color: #2b6cb0;
+            text-decoration: underline;
+        }
+        .token-hint code {
+            background: rgba(0,0,0,0.05);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .memory-cache-indicator {
+            font-size: 0.75rem;
+            color: #718096;
+            padding: 0.25rem 0;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             .search-container {
                 flex-direction: column;
@@ -513,6 +650,13 @@
                 font-size: 0.75rem;
                 min-width: 32px;
             }
+            .pat-input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .pat-input-group input {
+                min-width: unset;
+            }
         }
     </style>
 </head>
@@ -524,6 +668,44 @@
         <h2>📋 About</h2>
         <p><strong>SimpleDB</strong> is a minimal file archive system. Files stored here are available for direct download via permanent URLs.</p>
         <p style="margin-top: 0.5rem;">📌 <strong>Files are fetched live from the GitHub repository.</strong></p>
+    </div>
+
+    <div id="storageWarning" class="storage-warning" style="display:none;">
+        ⚠️ Your browser doesn't support local storage. Token and cache will only work for this session.
+    </div>
+
+    <div class="card">
+        <h2>🔑 GitHub Token Management</h2>
+        <p style="font-size: 0.9rem; color: #718096; margin-bottom: 1rem;">
+            Add a GitHub Personal Access Token to increase API rate limits from 60 to 5,000 requests per hour.
+            Tokens are stored locally in your browser.
+        </p>
+        
+        <div class="pat-section">
+            <div class="pat-input-group">
+                <input type="password" id="patInput" placeholder="Enter your GitHub PAT (ghp_...)" autocomplete="off">
+                <button class="btn-save-pat" id="savePatBtn">💾 Save Token</button>
+                <button class="btn-remove-pat" id="removePatBtn" style="display:none;">🗑️ Remove</button>
+            </div>
+            
+            <div class="pat-status" id="patStatus">
+                <span>Status:</span>
+                <span class="status-badge inactive" id="patStatusBadge">No Token</span>
+                <span id="patStatusText" style="color: #718096;">Using unauthenticated (60 req/hr)</span>
+            </div>
+            
+            <div class="rate-limit-info" id="rateLimitInfo">
+                💡 Current rate limit: <span class="highlight" id="rateLimitDisplay">60</span> requests per hour
+                <span id="rateLimitRemaining" style="margin-left: 1rem;"></span>
+            </div>
+            
+            <div id="storageStatus" class="memory-cache-indicator"></div>
+            
+            <div class="token-hint">
+                🔑 <a href="https://github.com/settings/tokens" target="_blank">Generate a token</a> with <code>public_repo</code> scope (or no scopes for public repos).
+                Your token is stored only in your browser's local storage.
+            </div>
+        </div>
     </div>
 
     <div class="card">
@@ -597,13 +779,12 @@
     </footer>
 
     <script>
-        // 🔑 GitHub Personal Access Token
-        const GITHUB_TOKEN = 'GITHUB_TOKEN'; // paste actual here
-        
         const USERNAME = 'dryfish09';
         const REPO = 'SimpleDB';
         const FILES_PATH = 'files';
         const CACHE_KEY = 'simpledb_cache';
+        const PAT_STORAGE_KEY = 'simpledb_pat';
+        const COOLDOWN_KEY = 'simpledb_cooldown';
         const CACHE_DURATION = 30 * 60 * 1000;
         const REFRESH_COOLDOWN = 50;
         const FILES_PER_PAGE = 30;
@@ -624,6 +805,15 @@
         const resultsInfo = document.getElementById('resultsInfo');
         const filterBtns = document.querySelectorAll('.filter-btn');
         const paginationContainer = document.getElementById('paginationContainer');
+        const patInput = document.getElementById('patInput');
+        const savePatBtn = document.getElementById('savePatBtn');
+        const removePatBtn = document.getElementById('removePatBtn');
+        const patStatusBadge = document.getElementById('patStatusBadge');
+        const patStatusText = document.getElementById('patStatusText');
+        const rateLimitDisplay = document.getElementById('rateLimitDisplay');
+        const rateLimitRemaining = document.getElementById('rateLimitRemaining');
+        const storageWarning = document.getElementById('storageWarning');
+        const storageStatus = document.getElementById('storageStatus');
 
         let isRefreshing = false;
         let autoRefreshInterval = null;
@@ -633,11 +823,310 @@
         let currentSearch = '';
         let cooldownTimeout = null;
         let cooldownEndTime = 0;
-        let useAuth = true;
+        let useAuth = false;
         let currentPage = 1;
         let totalPages = 0;
         let searchTimeout = null;
+        let githubToken = '';
+        let rateLimitRemainingCount = null;
+        let rateLimitResetTime = null;
 
+        // === STORAGE MANAGEMENT ===
+        let storageAvailable = false;
+        let storageType = 'none';
+        let memoryCache = {};
+
+        function checkStorage() {
+            try {
+                const testKey = '__test__';
+                localStorage.setItem(testKey, 'test');
+                localStorage.removeItem(testKey);
+                storageAvailable = true;
+                storageType = 'localStorage';
+                return true;
+            } catch (e) {
+                try {
+                    const testKey = '__test__';
+                    sessionStorage.setItem(testKey, 'test');
+                    sessionStorage.removeItem(testKey);
+                    storageAvailable = true;
+                    storageType = 'sessionStorage';
+                    return true;
+                } catch (e2) {
+                    storageAvailable = false;
+                    storageType = 'none';
+                    return false;
+                }
+            }
+        }
+
+        function getStorageItem(key) {
+            if (storageAvailable) {
+                try {
+                    if (storageType === 'localStorage') {
+                        return localStorage.getItem(key);
+                    } else if (storageType === 'sessionStorage') {
+                        return sessionStorage.getItem(key);
+                    }
+                } catch (e) {
+                    return memoryCache[key] || null;
+                }
+            }
+            return memoryCache[key] || null;
+        }
+
+        function setStorageItem(key, value) {
+            if (storageAvailable) {
+                try {
+                    if (storageType === 'localStorage') {
+                        localStorage.setItem(key, value);
+                    } else if (storageType === 'sessionStorage') {
+                        sessionStorage.setItem(key, value);
+                    }
+                } catch (e) {
+                    memoryCache[key] = value;
+                }
+            } else {
+                memoryCache[key] = value;
+            }
+        }
+
+        function removeStorageItem(key) {
+            if (storageAvailable) {
+                try {
+                    if (storageType === 'localStorage') {
+                        localStorage.removeItem(key);
+                    } else if (storageType === 'sessionStorage') {
+                        sessionStorage.removeItem(key);
+                    }
+                } catch (e) {
+                    delete memoryCache[key];
+                }
+            } else {
+                delete memoryCache[key];
+            }
+        }
+
+        function updateStorageUI() {
+            if (storageAvailable) {
+                storageWarning.style.display = 'none';
+                storageStatus.textContent = `💾 Using ${storageType} for persistence`;
+                storageStatus.style.color = '#48bb78';
+            } else {
+                storageWarning.style.display = 'block';
+                storageStatus.textContent = '⚠️ Using memory cache (no persistence across sessions)';
+                storageStatus.style.color = '#ecc94b';
+                cacheDot.className = 'dot stale';
+            }
+        }
+
+        // === PAT MANAGEMENT ===
+        function loadPat() {
+            const saved = getStorageItem(PAT_STORAGE_KEY);
+            if (saved) {
+                githubToken = saved;
+                useAuth = true;
+                updatePatUI();
+                return true;
+            }
+            githubToken = '';
+            useAuth = false;
+            updatePatUI();
+            return false;
+        }
+
+        function savePat(token) {
+            setStorageItem(PAT_STORAGE_KEY, token);
+            githubToken = token;
+            useAuth = true;
+            updatePatUI();
+            return true;
+        }
+
+        function removePat() {
+            removeStorageItem(PAT_STORAGE_KEY);
+            githubToken = '';
+            useAuth = false;
+            updatePatUI();
+            return true;
+        }
+
+        function updatePatUI() {
+            if (useAuth && githubToken) {
+                patStatusBadge.className = 'status-badge active';
+                patStatusBadge.textContent = 'Active';
+                patStatusText.textContent = 'Using token (5,000 req/hr)';
+                rateLimitDisplay.textContent = '5,000';
+                removePatBtn.style.display = 'inline-block';
+                patInput.value = githubToken;
+                patInput.type = 'password';
+            } else {
+                patStatusBadge.className = 'status-badge inactive';
+                patStatusBadge.textContent = 'No Token';
+                patStatusText.textContent = 'Using unauthenticated (60 req/hr)';
+                rateLimitDisplay.textContent = '60';
+                removePatBtn.style.display = 'none';
+                patInput.value = '';
+                patInput.type = 'password';
+            }
+        }
+
+        function validatePat(token) {
+            return token && token.startsWith('ghp_') && token.length > 10;
+        }
+
+        // === RATE LIMIT ===
+        function updateRateLimitRemaining(headers) {
+            const remaining = headers.get('X-RateLimit-Remaining');
+            const reset = headers.get('X-RateLimit-Reset');
+            
+            if (remaining) {
+                rateLimitRemainingCount = parseInt(remaining);
+                if (useAuth) {
+                    rateLimitRemaining.textContent = `🔢 ${remaining} remaining`;
+                } else {
+                    rateLimitRemaining.textContent = `🔢 ${remaining} remaining (60 total)`;
+                }
+            }
+            
+            if (reset) {
+                rateLimitResetTime = parseInt(reset) * 1000;
+                const resetDate = new Date(rateLimitResetTime);
+                rateLimitRemaining.textContent += ` | Reset: ${resetDate.toLocaleTimeString()}`;
+            }
+        }
+
+        // === COOLDOWN - FIXED ===
+        function getCooldownEndTime() {
+            const saved = getStorageItem(COOLDOWN_KEY);
+            if (saved) {
+                const time = parseInt(saved);
+                if (!isNaN(time)) {
+                    return time;
+                }
+            }
+            return 0;
+        }
+
+        function setCooldownEndTime(endTime) {
+            setStorageItem(COOLDOWN_KEY, endTime.toString());
+        }
+
+        function removeCooldown() {
+            removeStorageItem(COOLDOWN_KEY);
+        }
+
+        function startCooldown() {
+            cooldownEndTime = Date.now() + (REFRESH_COOLDOWN * 1000);
+            setCooldownEndTime(cooldownEndTime);
+            updateCooldownUI();
+        }
+
+        function clearCooldown() {
+            if (cooldownTimeout) {
+                clearInterval(cooldownTimeout);
+                cooldownTimeout = null;
+            }
+            cooldownEndTime = 0;
+            removeCooldown();
+            refreshBtn.disabled = false;
+            cooldownTimer.style.display = 'none';
+            refreshText.textContent = 'Refresh';
+            refreshIcon.textContent = '🔄';
+            refreshIcon.className = '';
+        }
+
+        function updateCooldownUI() {
+            const now = Date.now();
+            const remaining = Math.max(0, cooldownEndTime - now);
+            
+            if (remaining > 0) {
+                const seconds = Math.ceil(remaining / 1000);
+                refreshBtn.disabled = true;
+                cooldownTimer.style.display = 'inline';
+                cooldownTimer.textContent = `${seconds}s`;
+                refreshText.textContent = 'Wait';
+                refreshIcon.textContent = '⏳';
+                refreshIcon.className = '';
+                
+                if (cooldownTimeout) clearInterval(cooldownTimeout);
+                cooldownTimeout = setInterval(() => {
+                    const remainingNow = Math.max(0, cooldownEndTime - Date.now());
+                    if (remainingNow > 0) {
+                        const secs = Math.ceil(remainingNow / 1000);
+                        cooldownTimer.textContent = `${secs}s`;
+                    } else {
+                        clearCooldown();
+                    }
+                }, 200);
+            } else {
+                clearCooldown();
+            }
+        }
+
+        function checkExistingCooldown() {
+            const savedEndTime = getCooldownEndTime();
+            if (savedEndTime && savedEndTime > Date.now()) {
+                cooldownEndTime = savedEndTime;
+                updateCooldownUI();
+                return true;
+            } else if (savedEndTime) {
+                removeCooldown();
+            }
+            return false;
+        }
+
+        // === CACHE ===
+        function getCacheData() {
+            const cached = getStorageItem(CACHE_KEY);
+            if (!cached) return null;
+            try {
+                const cacheData = JSON.parse(cached);
+                if (Date.now() - cacheData.timestamp > CACHE_DURATION) {
+                    removeStorageItem(CACHE_KEY);
+                    return null;
+                }
+                return cacheData.data;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveCacheData(data) {
+            try {
+                setStorageItem(CACHE_KEY, JSON.stringify({
+                    timestamp: Date.now(),
+                    data: data
+                }));
+            } catch (e) {
+                // Memory cache fallback
+            }
+        }
+
+        function clearCache() {
+            removeStorageItem(CACHE_KEY);
+        }
+
+        function updateCacheStatus(status) {
+            if (!storageAvailable) {
+                cacheDot.className = 'dot stale';
+                cacheStatus.textContent = 'Memory cache only';
+                return;
+            }
+            
+            if (status === 'valid') {
+                cacheDot.className = 'dot';
+                cacheStatus.textContent = 'Cache valid';
+            } else if (status === 'rate-limited') {
+                cacheDot.className = 'dot error';
+                cacheStatus.textContent = 'Rate limited - using cache';
+            } else {
+                cacheDot.className = 'dot stale';
+                cacheStatus.textContent = 'No cache';
+            }
+        }
+
+        // === FILE ICONS ===
         const FILE_ICONS = {
             'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📃',
             'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
@@ -662,6 +1151,7 @@
             'dll': '🔧', 'so': '🔧', 'dylib': '🔧', 'obj': '🔧'
         };
 
+        // === FILE FUNCTIONS ===
         function getFileType(filename) {
             const ext = filename.split('.').pop().toLowerCase();
             
@@ -697,8 +1187,8 @@
             const headers = {
                 'Accept': 'application/vnd.github.v3+json'
             };
-            if (useAuth && GITHUB_TOKEN && GITHUB_TOKEN.startsWith('ghp_')) {
-                headers['Authorization'] = `token ${GITHUB_TOKEN}`;
+            if (useAuth && githubToken && githubToken.startsWith('ghp_')) {
+                headers['Authorization'] = `token ${githubToken}`;
             }
             return headers;
         }
@@ -708,115 +1198,25 @@
                 headers: getHeaders()
             });
             
+            if (response.headers) {
+                updateRateLimitRemaining(response.headers);
+            }
+            
             if (response.status === 401 && useAuth) {
                 console.log('⚠️ Token failed, falling back to unauthenticated');
                 useAuth = false;
+                removePat();
                 const retryResponse = await fetch(url, {
                     headers: {
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
+                if (retryResponse.headers) {
+                    updateRateLimitRemaining(retryResponse.headers);
+                }
                 return retryResponse;
             }
             return response;
-        }
-
-        function startCooldown() {
-            cooldownEndTime = Date.now() + (REFRESH_COOLDOWN * 1000);
-            try {
-                sessionStorage.setItem('simpledb_cooldown', cooldownEndTime.toString());
-            } catch (e) {}
-            updateCooldownUI();
-        }
-
-        function clearCooldown() {
-            if (cooldownTimeout) {
-                clearTimeout(cooldownTimeout);
-                cooldownTimeout = null;
-            }
-            cooldownEndTime = 0;
-            refreshBtn.disabled = false;
-            cooldownTimer.style.display = 'none';
-            refreshText.textContent = 'Refresh';
-            refreshIcon.textContent = '🔄';
-            refreshIcon.className = '';
-            try {
-                sessionStorage.removeItem('simpledb_cooldown');
-            } catch (e) {}
-        }
-
-        function updateCooldownUI() {
-            const now = Date.now();
-            const remaining = Math.max(0, cooldownEndTime - now);
-            
-            if (remaining > 0) {
-                const seconds = Math.ceil(remaining / 1000);
-                refreshBtn.disabled = true;
-                cooldownTimer.style.display = 'inline';
-                cooldownTimer.textContent = `${seconds}s`;
-                refreshText.textContent = 'Wait';
-                refreshIcon.textContent = '⏳';
-                refreshIcon.className = '';
-                
-                if (cooldownTimeout) clearTimeout(cooldownTimeout);
-                cooldownTimeout = setTimeout(updateCooldownUI, 1000);
-            } else {
-                clearCooldown();
-            }
-        }
-
-        function checkExistingCooldown() {
-            try {
-                const savedCooldown = sessionStorage.getItem('simpledb_cooldown');
-                if (savedCooldown) {
-                    const endTime = parseInt(savedCooldown);
-                    if (!isNaN(endTime) && endTime > Date.now()) {
-                        cooldownEndTime = endTime;
-                        updateCooldownUI();
-                        return true;
-                    } else {
-                        sessionStorage.removeItem('simpledb_cooldown');
-                    }
-                }
-            } catch (e) {}
-            return false;
-        }
-
-        function saveToCache(data) {
-            try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({
-                    timestamp: Date.now(),
-                    data: data
-                }));
-            } catch (e) {}
-        }
-
-        function loadFromCache() {
-            try {
-                const cached = localStorage.getItem(CACHE_KEY);
-                if (!cached) return null;
-                const cacheData = JSON.parse(cached);
-                if (Date.now() - cacheData.timestamp > CACHE_DURATION) {
-                    localStorage.removeItem(CACHE_KEY);
-                    return null;
-                }
-                return cacheData.data;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        function updateCacheStatus(status) {
-            if (status === 'valid') {
-                cacheDot.className = 'dot';
-                cacheStatus.textContent = 'Cache valid';
-            } else if (status === 'rate-limited') {
-                cacheDot.className = 'dot error';
-                cacheStatus.textContent = 'Rate limited - using cache';
-            } else {
-                cacheDot.className = 'dot stale';
-                cacheStatus.textContent = 'No cache';
-            }
         }
 
         function formatSize(bytes) {
@@ -949,7 +1349,6 @@
             if (page > 0 && page <= totalPages) {
                 goToPage(page);
             } else if (totalPages === 0) {
-                // No pages available
                 input.value = 1;
             }
         };
@@ -1076,13 +1475,14 @@
                 currentPage = Math.min(currentPage, totalPages || 1);
                 if (currentPage < 1) currentPage = 1;
                 renderCurrentPage();
-                // Scroll to top of file list
                 const card = document.querySelector('.card');
                 if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
+        // === MAIN FETCH FUNCTION ===
         async function fetchFromGitHub(forceRefresh = false) {
+            // Check cooldown FIRST
             if (cooldownEndTime > Date.now()) {
                 const remaining = Math.ceil((cooldownEndTime - Date.now()) / 1000);
                 container.innerHTML = `
@@ -1103,7 +1503,7 @@
             refreshText.textContent = 'Loading...';
 
             if (!forceRefresh) {
-                const cachedData = loadFromCache();
+                const cachedData = getCacheData();
                 if (cachedData) {
                     currentFiles = cachedData.files;
                     currentCommits = cachedData.commits;
@@ -1127,13 +1527,17 @@
                     fetchWithAuth(COMMITS_API)
                 ]);
 
+                if (filesResponse.headers) {
+                    updateRateLimitRemaining(filesResponse.headers);
+                }
+
                 if (filesResponse.status === 403) {
                     const remaining = filesResponse.headers.get('X-RateLimit-Remaining');
                     if (remaining === '0') {
                         const resetTime = parseInt(filesResponse.headers.get('X-RateLimit-Reset')) * 1000;
                         const resetDate = new Date(resetTime);
                         
-                        const cachedData = loadFromCache();
+                        const cachedData = getCacheData();
                         if (cachedData) {
                             updateCacheStatus('rate-limited');
                             currentFiles = cachedData.files;
@@ -1144,13 +1548,14 @@
                                 <div class="rate-limit" role="alert">
                                     ⚠️ GitHub API rate limit exceeded. Using cached data.
                                     <br><small>Reset at ${resetDate.toLocaleTimeString()}</small>
+                                    ${!useAuth ? '<br><small>💡 Add a PAT for higher limits (5,000/hr)</small>' : ''}
                                 </div>
                             `;
                         } else {
                             container.innerHTML = `
                                 <div class="error" role="alert">
                                     ⚠️ GitHub API rate limit exceeded. Please try again after ${resetDate.toLocaleTimeString()}.
-                                    <br><small>No cached data available.</small>
+                                    <br><small>${!useAuth ? '💡 Add a PAT above for higher limits (5,000/hr)' : 'Token rate limit reached'}</small>
                                 </div>
                             `;
                             paginationContainer.style.display = 'none';
@@ -1173,7 +1578,7 @@
                             </div>
                         `;
                         paginationContainer.style.display = 'none';
-                        localStorage.removeItem(CACHE_KEY);
+                        clearCache();
                         isRefreshing = false;
                         refreshBtn.disabled = false;
                         refreshIcon.textContent = '🔄';
@@ -1194,16 +1599,18 @@
                 currentCommits = commits;
                 currentPage = 1;
                 
-                localStorage.removeItem(CACHE_KEY);
-                saveToCache({ files, commits });
+                clearCache();
+                saveCacheData({ files, commits });
                 updateCacheStatus('valid');
                 renderCurrentPage();
+                
+                // Start cooldown AFTER successful fetch
                 startCooldown();
 
             } catch (error) {
                 console.error('Error fetching files:', error);
                 
-                const cachedData = loadFromCache();
+                const cachedData = getCacheData();
                 if (cachedData) {
                     updateCacheStatus('stale');
                     currentFiles = cachedData.files;
@@ -1214,6 +1621,7 @@
                         <div class="warning" role="alert">
                             ⚠️ Using cached data (refresh failed). Will retry on next refresh.
                             <br><small>${error.message}</small>
+                            ${!useAuth ? '<br><small>💡 Try adding a PAT above for better reliability</small>' : ''}
                         </div>
                     `;
                 } else {
@@ -1221,6 +1629,7 @@
                         <div class="error" role="alert">
                             ❌ Failed to load files. Please try again later.
                             <br><small style="color: #718096;">${error.message}</small>
+                            ${!useAuth ? '<br><small>💡 Add a PAT above to increase rate limits</small>' : ''}
                         </div>
                     `;
                     paginationContainer.style.display = 'none';
@@ -1228,20 +1637,45 @@
                 }
             } finally {
                 isRefreshing = false;
-                if (!refreshBtn.disabled) {
-                    refreshBtn.disabled = false;
-                }
+                refreshBtn.disabled = false;
                 refreshIcon.textContent = '🔄';
                 refreshIcon.className = '';
                 refreshText.textContent = 'Refresh';
-                if (cooldownTimeout) {
-                    clearTimeout(cooldownTimeout);
-                    cooldownTimeout = null;
-                }
             }
         }
 
-        // Event Listeners
+        // === EVENT LISTENERS ===
+        savePatBtn.addEventListener('click', () => {
+            const token = patInput.value.trim();
+            if (validatePat(token)) {
+                savePat(token);
+                fetchFromGitHub(true);
+                const statusDiv = document.getElementById('patStatus');
+                const msg = document.createElement('div');
+                msg.className = 'success';
+                msg.textContent = '✅ Token saved successfully! Refreshing files...';
+                statusDiv.appendChild(msg);
+                setTimeout(() => {
+                    if (msg.parentNode) msg.remove();
+                }, 3000);
+            } else {
+                alert('Invalid token format. Token should start with "ghp_" and be at least 10 characters.');
+            }
+        });
+
+        removePatBtn.addEventListener('click', () => {
+            if (confirm('Remove saved token? You will revert to unauthenticated (60 req/hr).')) {
+                removePat();
+                fetchFromGitHub(true);
+            }
+        });
+
+        patInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                savePatBtn.click();
+            }
+        });
+
         searchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
@@ -1274,16 +1708,24 @@
 
         window.addEventListener('beforeunload', () => {
             if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            if (cooldownTimeout) clearTimeout(cooldownTimeout);
+            if (cooldownTimeout) clearInterval(cooldownTimeout);
             if (searchTimeout) clearTimeout(searchTimeout);
         });
 
-        // Initial load
+        // === INITIALIZATION ===
         document.addEventListener('DOMContentLoaded', () => {
+            // Check storage support
+            checkStorage();
+            updateStorageUI();
+            
+            // Load PAT from storage
+            loadPat();
+            
+            // Check for existing cooldown FIRST
             const hasCooldown = checkExistingCooldown();
             
             if (!hasCooldown) {
-                const cachedData = loadFromCache();
+                const cachedData = getCacheData();
                 if (cachedData) {
                     currentFiles = cachedData.files;
                     currentCommits = cachedData.commits;
@@ -1294,7 +1736,8 @@
                     fetchFromGitHub(false);
                 }
             } else {
-                const cachedData = loadFromCache();
+                // Cooldown is active, load from cache if available
+                const cachedData = getCacheData();
                 if (cachedData) {
                     currentFiles = cachedData.files;
                     currentCommits = cachedData.commits;
@@ -1305,7 +1748,7 @@
             }
             
             autoRefreshInterval = setInterval(() => {
-                const cached = localStorage.getItem(CACHE_KEY);
+                const cached = getStorageItem(CACHE_KEY);
                 if (cached) {
                     try {
                         const cacheData = JSON.parse(cached);
