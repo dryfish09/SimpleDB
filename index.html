@@ -405,6 +405,74 @@
             font-style: italic;
         }
 
+        /* Pagination Styles */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 0.4rem 0.9rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #4a5568;
+            min-width: 40px;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: #edf2f7;
+            border-color: #2b6cb0;
+        }
+        .pagination button.active {
+            background: #2b6cb0;
+            color: white;
+            border-color: #2b6cb0;
+        }
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination .page-info {
+            padding: 0.4rem 1rem;
+            color: #718096;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .pagination .page-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .pagination .page-input-group input {
+            width: 60px;
+            padding: 0.3rem 0.4rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .pagination .page-input-group input:focus {
+            border-color: #2b6cb0;
+        }
+        .pagination .page-input-group button {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.8rem;
+        }
+        .pagination .ellipsis {
+            color: #a0aec0;
+            padding: 0 0.25rem;
+        }
+
         @media (max-width: 768px) {
             .search-container {
                 flex-direction: column;
@@ -440,6 +508,14 @@
             }
             .file-tag {
                 font-size: 0.65rem;
+            }
+            .pagination {
+                gap: 0.25rem;
+            }
+            .pagination button {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.75rem;
+                min-width: 32px;
             }
         }
     </style>
@@ -497,6 +573,9 @@
                 Loading files<span class="loading-dots">...</span>
             </div>
         </div>
+        
+        <!-- Pagination -->
+        <div id="paginationContainer" class="pagination" style="display:none;"></div>
     </div>
 
     <div class="card">
@@ -524,7 +603,6 @@
 
     <script>
         // 🔑 GitHub Personal Access Token
-        // If token is revoked, fallback to unauthenticated
         const GITHUB_TOKEN = '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';
         
         const USERNAME = 'dryfish09';
@@ -533,6 +611,8 @@
         const CACHE_KEY = 'simpledb_cache';
         const CACHE_DURATION = 30 * 60 * 1000;
         const REFRESH_COOLDOWN = 50;
+        const FILES_PER_PAGE = 30;
+        const MAX_PAGES = 999;
 
         const API_URL = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/${FILES_PATH}`;
         const COMMITS_API = `https://api.github.com/repos/${USERNAME}/${REPO}/commits?path=${FILES_PATH}&per_page=100`;
@@ -548,6 +628,7 @@
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const resultsInfo = document.getElementById('resultsInfo');
         const filterBtns = document.querySelectorAll('.filter-btn');
+        const paginationContainer = document.getElementById('paginationContainer');
 
         let isRefreshing = false;
         let autoRefreshInterval = null;
@@ -558,6 +639,8 @@
         let cooldownTimeout = null;
         let cooldownEndTime = 0;
         let useAuth = true;
+        let currentPage = 1;
+        let totalPages = 0;
 
         const FILE_ICONS = {
             'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📃',
@@ -629,11 +712,9 @@
                 headers: getHeaders()
             });
             
-            // If 401 with auth, fallback to unauthenticated
             if (response.status === 401 && useAuth) {
                 console.log('⚠️ Token failed, falling back to unauthenticated');
                 useAuth = false;
-                // Retry without auth
                 const retryResponse = await fetch(url, {
                     headers: {
                         'Accept': 'application/vnd.github.v3+json'
@@ -790,13 +871,104 @@
             return filtered;
         }
 
-        function renderFileList(files, commits) {
-            currentFiles = files;
-            currentCommits = commits;
+        function renderPagination(totalFiles) {
+            const totalFiltered = totalFiles;
+            totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
             
+            if (totalPages <= 1 || totalFiltered === 0) {
+                paginationContainer.style.display = 'none';
+                return;
+            }
+            
+            paginationContainer.style.display = 'flex';
+            
+            let html = '';
+            
+            // Previous button
+            html += `<button onclick="goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>◀</button>`;
+            
+            // Page numbers
+            const maxVisiblePages = 7;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            if (startPage > 1) {
+                html += `<button onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span class="ellipsis">…</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button onclick="goToPage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span class="ellipsis">…</span>`;
+                }
+                html += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // Next button
+            html += `<button onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>▶</button>`;
+            
+            // Page input
+            html += `
+                <div class="page-input-group">
+                    <span style="font-size:0.8rem;color:#718096;">Go to</span>
+                    <input type="number" id="pageInput" min="1" max="${totalPages}" value="${currentPage}" 
+                           onkeydown="if(event.key === 'Enter') jumpToPage()">
+                    <button onclick="jumpToPage()">Go</button>
+                </div>
+            `;
+            
+            paginationContainer.innerHTML = html;
+        }
+
+        // Global functions for pagination
+        window.goToPage = function(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            currentPage = page;
+            renderCurrentPage();
+            // Scroll to top of file list
+            document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        window.jumpToPage = function() {
+            const input = document.getElementById('pageInput');
+            if (!input) return;
+            let page = parseInt(input.value);
+            if (isNaN(page) || page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            goToPage(page);
+        };
+
+        function renderCurrentPage() {
+            if (currentFiles.length === 0) return;
+            
+            const filteredFiles = filterFiles(currentFiles, currentSearch, currentFilter);
+            const totalFiltered = filteredFiles.length;
+            totalPages = Math.ceil(totalFiltered / FILES_PER_PAGE);
+            
+            if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+            
+            const startIndex = (currentPage - 1) * FILES_PER_PAGE;
+            const endIndex = Math.min(startIndex + FILES_PER_PAGE, totalFiltered);
+            const pageFiles = filteredFiles.slice(startIndex, endIndex);
+            
+            renderFileListPage(pageFiles, totalFiltered);
+            renderPagination(totalFiltered);
+        }
+
+        function renderFileListPage(pageFiles, totalFiltered) {
             const fileDateMap = new Map();
-            if (commits && Array.isArray(commits)) {
-                commits.forEach(commit => {
+            if (currentCommits && Array.isArray(currentCommits)) {
+                currentCommits.forEach(commit => {
                     if (commit.files && Array.isArray(commit.files)) {
                         commit.files.forEach(file => {
                             if (file.filename && file.filename.startsWith(`${FILES_PATH}/`)) {
@@ -811,30 +983,9 @@
                 });
             }
 
-            const filteredFiles = filterFiles(files, currentSearch, currentFilter);
-            const totalFiles = files.filter(item => item.type === 'file').length;
+            const totalFiles = currentFiles.filter(item => item.type === 'file').length;
             
-            if (filteredFiles.length === 0) {
-                if (currentSearch.trim() && currentFilter !== 'all') {
-                    resultsInfo.textContent = `No ${getTypeLabel(currentFilter)} files found matching "${currentSearch.trim()}"`;
-                } else if (currentSearch.trim()) {
-                    resultsInfo.textContent = `No files found matching "${currentSearch.trim()}"`;
-                } else if (currentFilter !== 'all') {
-                    resultsInfo.textContent = `No ${getTypeLabel(currentFilter)} files found`;
-                } else {
-                    resultsInfo.textContent = 'No files found';
-                }
-            } else if (currentSearch.trim() || currentFilter !== 'all') {
-                let filterLabel = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
-                if (currentFilter === 'binary') {
-                    filterLabel = 'Binary (includes executables)';
-                }
-                resultsInfo.textContent = `Showing ${filteredFiles.length} of ${totalFiles} files (${filterLabel}${currentSearch.trim() ? `, search: "${currentSearch.trim()}"` : ''})`;
-            } else {
-                resultsInfo.textContent = `Showing ${totalFiles} files`;
-            }
-
-            if (filteredFiles.length === 0) {
+            if (pageFiles.length === 0) {
                 container.innerHTML = `
                     <div class="no-results">
                         <span class="emoji">🔍</span>
@@ -845,8 +996,23 @@
                 return;
             }
 
+            // Update results info
+            if (currentSearch.trim() || currentFilter !== 'all') {
+                let filterLabel = currentFilter === 'all' ? 'all types' : getTypeLabel(currentFilter);
+                if (currentFilter === 'binary') {
+                    filterLabel = 'Binary (includes executables)';
+                }
+                const start = (currentPage - 1) * FILES_PER_PAGE + 1;
+                const end = Math.min(start + pageFiles.length - 1, totalFiltered);
+                resultsInfo.textContent = `Showing ${start}-${end} of ${totalFiltered} files (${filterLabel}${currentSearch.trim() ? `, search: "${currentSearch.trim()}"` : ''})`;
+            } else {
+                const start = (currentPage - 1) * FILES_PER_PAGE + 1;
+                const end = Math.min(start + pageFiles.length - 1, totalFiles);
+                resultsInfo.textContent = `Showing ${start}-${end} of ${totalFiles} files`;
+            }
+
             let html = `<ul class="file-list">`;
-            filteredFiles.slice(0, 50).forEach(file => {
+            pageFiles.forEach(file => {
                 const icon = getFileIcon(file.name);
                 const size = formatSize(file.size);
                 const date = fileDateMap.get(file.name) || file.sha;
@@ -874,18 +1040,13 @@
             });
             html += `</ul>`;
 
-            if (filteredFiles.length > 50) {
-                html += `<p style="text-align: center; color: #a0aec0; margin-top: 1rem; font-size: 0.9rem;">
-                    Showing 50 of ${filteredFiles.length} matching files
-                </p>`;
-            }
-
             container.innerHTML = html;
         }
 
         function applySearchAndFilter() {
             if (currentFiles.length > 0) {
-                renderFileList(currentFiles, currentCommits);
+                currentPage = 1;
+                renderCurrentPage();
             }
         }
 
@@ -912,7 +1073,10 @@
             if (!forceRefresh) {
                 const cachedData = loadFromCache();
                 if (cachedData) {
-                    renderFileList(cachedData.files, cachedData.commits);
+                    currentFiles = cachedData.files;
+                    currentCommits = cachedData.commits;
+                    currentPage = 1;
+                    renderCurrentPage();
                     updateCacheStatus('valid');
                     isRefreshing = false;
                     refreshBtn.disabled = false;
@@ -940,7 +1104,10 @@
                         const cachedData = loadFromCache();
                         if (cachedData) {
                             updateCacheStatus('rate-limited');
-                            renderFileList(cachedData.files, cachedData.commits);
+                            currentFiles = cachedData.files;
+                            currentCommits = cachedData.commits;
+                            currentPage = 1;
+                            renderCurrentPage();
                             container.innerHTML += `
                                 <div class="rate-limit" role="alert">
                                     ⚠️ GitHub API rate limit exceeded. Using cached data.
@@ -972,6 +1139,7 @@
                                 <p style="font-size: 0.9rem; margin-top: 0.25rem;">Create it and add some files!</p>
                             </div>
                         `;
+                        paginationContainer.style.display = 'none';
                         localStorage.removeItem(CACHE_KEY);
                         isRefreshing = false;
                         refreshBtn.disabled = false;
@@ -989,10 +1157,14 @@
                     commits = await commitsResponse.json();
                 }
 
+                currentFiles = files;
+                currentCommits = commits;
+                currentPage = 1;
+                
                 localStorage.removeItem(CACHE_KEY);
                 saveToCache({ files, commits });
                 updateCacheStatus('valid');
-                renderFileList(files, commits);
+                renderCurrentPage();
                 startCooldown();
 
             } catch (error) {
@@ -1001,7 +1173,10 @@
                 const cachedData = loadFromCache();
                 if (cachedData) {
                     updateCacheStatus('stale');
-                    renderFileList(cachedData.files, cachedData.commits);
+                    currentFiles = cachedData.files;
+                    currentCommits = cachedData.commits;
+                    currentPage = 1;
+                    renderCurrentPage();
                     container.innerHTML += `
                         <div class="warning" role="alert">
                             ⚠️ Using cached data (refresh failed). Will retry on next refresh.
@@ -1015,6 +1190,7 @@
                             <br><small style="color: #718096;">${error.message}</small>
                         </div>
                     `;
+                    paginationContainer.style.display = 'none';
                     updateCacheStatus('stale');
                 }
             } finally {
@@ -1066,7 +1242,10 @@
             if (!hasCooldown) {
                 const cachedData = loadFromCache();
                 if (cachedData) {
-                    renderFileList(cachedData.files, cachedData.commits);
+                    currentFiles = cachedData.files;
+                    currentCommits = cachedData.commits;
+                    currentPage = 1;
+                    renderCurrentPage();
                     updateCacheStatus('valid');
                 } else {
                     fetchFromGitHub(false);
@@ -1074,7 +1253,10 @@
             } else {
                 const cachedData = loadFromCache();
                 if (cachedData) {
-                    renderFileList(cachedData.files, cachedData.commits);
+                    currentFiles = cachedData.files;
+                    currentCommits = cachedData.commits;
+                    currentPage = 1;
+                    renderCurrentPage();
                     updateCacheStatus('valid');
                 }
             }
